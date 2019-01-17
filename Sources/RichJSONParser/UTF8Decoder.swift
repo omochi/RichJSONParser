@@ -51,12 +51,12 @@ internal extension UTF8Decoder {
         }
     }
 
-    static func readUTF8(at start: Int, from data: Data) throws -> DecodedUnicodeChar? {
-        guard start < data.count else {
+    static func decodeUTF8(at start: Int, from data: Data) throws -> DecodedUnicodeChar? {
+        guard data.startIndex + start < data.endIndex else {
             return nil
         }
         
-        let b0 = data[start]
+        let b0 = data[data.startIndex + start]
         switch ByteKind(byte: b0) {
         case .head(length: let length):
             switch length {
@@ -70,7 +70,7 @@ internal extension UTF8Decoder {
                 }
 
                 for offset in 1..<length {
-                    let b1 = data[start + Int(offset)]
+                    let b1 = data[data.startIndex + start + Int(offset)]
                     switch ByteKind(byte: b1) {
                     case .head:
                         throw Error.unexceptedHead(offset: offset)

@@ -1,84 +1,15 @@
 import Foundation
 
-internal extension Unicode.Scalar {
-    static let cr = Unicode.Scalar(0x0D)!
-    static let lf = Unicode.Scalar(0x0A)!
-    static let tab = Unicode.Scalar(0x09)!
-    static let space = Unicode.Scalar(0x20)!
-    
-    static let doubleQuote = Unicode.Scalar(0x22)!
-    
-    static let plus = Unicode.Scalar(0x2B)!
-    static let minus = Unicode.Scalar(0x2D)!
-    static let star = Unicode.Scalar(0x2A)!
-    static let slash = Unicode.Scalar(0x2F)!
-    static let comma = Unicode.Scalar(0x2C)!
-    static let dot = Unicode.Scalar(0x2E)!
-    static let colon = Unicode.Scalar(0x3A)!
-    static let backSlash = Unicode.Scalar(0x5C)!
-    static let leftBracket = Unicode.Scalar(0x5B)!
-    static let rightBracket = Unicode.Scalar(0x5D)!
-    static let leftBrace = Unicode.Scalar(0x7B)!
-    static let rightBrace = Unicode.Scalar(0x7D)!
-    
-    static let num0 = Unicode.Scalar(0x30)!
-    static let num1 = Unicode.Scalar(0x31)!
-    static let num9 = Unicode.Scalar(0x39)!
-
-    static let alphaSA = Unicode.Scalar(0x61)!
-    static let alphaSB = Unicode.Scalar(0x62)!
-    static let alphaSE = Unicode.Scalar(0x65)!
-    static let alphaSF = Unicode.Scalar(0x66)!
-    static let alphaSN = Unicode.Scalar(0x6e)!
-    static let alphaSR = Unicode.Scalar(0x72)!
-    static let alphaST = Unicode.Scalar(0x74)!
-    static let alphaSU = Unicode.Scalar(0x75)!
-    static let alphaSZ = Unicode.Scalar(0x7A)!
-    
-    static let alphaLA = Unicode.Scalar(0x41)!
-    static let alphaLE = Unicode.Scalar(0x45)!
-    static let alphaLF = Unicode.Scalar(0x46)!
-    static let alphaLZ = Unicode.Scalar(0x5A)!
-    
-    func isNum0to9() -> Bool {
-        return .num0 <= self && self <= .num9
-    }
-    
-    func isNum1To9() -> Bool {
-        return .num1 <= self && self <= .num9
-    }
-    
-    func isHex() -> Bool {
-        return isNum0to9() ||
-        .alphaSA <= self && self <= .alphaSF ||
-        .alphaLA <= self && self <= .alphaLF
-    }
-    
-    func isAlpha() -> Bool {
-        return .alphaSA <= self && self <= .alphaSZ ||
-            .alphaLA <= self && self <= .alphaLZ
-    }
-    
-    func isControlCode() -> Bool {
-        let x = self.value
-        
-        return 0x00 <= x && x <= 0x1F ||
-            x == 0x7F ||
-            0x80 <= x && x <= 0x9F
-    }
-}
-
 public class JSONTokenizer {
     public enum Error : Swift.Error, CustomStringConvertible {
-        case invalidChar(SourceLocation, Unicode.Scalar)
+        case invalidCharacter(SourceLocation, Unicode.Scalar)
         case unexceptedEnd(SourceLocation)
         case utf8Error(SourceLocation, UTF8Decoder.Error)
         
         public var description: String {
             switch self {
-            case .invalidChar(let loc, let ch):
-                let chHex = String(format: "%04X", ch.value)
-                return "invalid character (\(ch), U+\(chHex)) at \(loc)"
+            case .invalidCharacter(let loc, let ch):
+                return "invalid character (\(ch.debugDescription)) at \(loc)"
             case .unexceptedEnd(let loc):
                 return "unexpected end of data at \(loc)"
             case .utf8Error(let loc, let e):
@@ -95,7 +26,28 @@ public class JSONTokenizer {
         self.location = SourceLocation(offset: 0, line: 1, columnInByte: 1)
     }
     
+    public func data(of token: JSONToken) -> Data {
+        let start = token.location.offset
+        let end = start + token.length
+        return self.data[start..<end]
+    }
+    
     public func read() throws -> JSONToken {
+        while true {
+            let token = try readRaw()
+            switch token.kind {
+            case .newLine,
+                 .whiteSpace,
+                 .lineComment,
+                 .blockComment:
+                continue
+            default:
+                return token
+            }
+        }
+    }
+    
+    public func readRaw() throws -> JSONToken {
         let start = location
         
         guard let c0 = try char(at: location) else {
@@ -139,8 +91,8 @@ public class JSONTokenizer {
                 }
             }
             
-            throw Error.invalidChar(location, c0c)
-        } else if c0c == .minus || c0c.isNum0to9() {
+            throw Error.invalidCharacter(location, c0c)
+        } else if c0c == .minus || c0c.isDigit() {
             return try readNumber()
         } else if c0c == .doubleQuote {
             return try readString()
@@ -159,7 +111,7 @@ public class JSONTokenizer {
         } else if c0c == .colon {
              return buildToken(start: start, kind: .colon)
         } else {
-            throw Error.invalidChar(location, c0c)
+            throw Error.invalidCharacter(location, c0c)
         }
     }
     
@@ -170,7 +122,7 @@ public class JSONTokenizer {
             throw Error.unexceptedEnd(location)
         }
         guard ac0.codePoint == .slash else {
-            throw Error.invalidChar(location, ac0.codePoint)
+            throw Error.invalidCharacter(location, ac0.codePoint)
         }
         location.addColumn(length: 1)
         
@@ -178,7 +130,7 @@ public class JSONTokenizer {
             throw Error.unexceptedEnd(location)
         }
         guard ac1.codePoint == .slash else {
-            throw Error.invalidChar(location, ac1.codePoint)
+            throw Error.invalidCharacter(location, ac1.codePoint)
         }
         location.addColumn(length: 1)
         
@@ -201,7 +153,7 @@ public class JSONTokenizer {
             throw Error.unexceptedEnd(location)
         }
         guard ac0.codePoint == .slash else {
-            throw Error.invalidChar(location, ac0.codePoint)
+            throw Error.invalidCharacter(location, ac0.codePoint)
         }
         location.addColumn(length: 1)
         
@@ -209,7 +161,7 @@ public class JSONTokenizer {
             throw Error.unexceptedEnd(location)
         }
         guard ac1.codePoint == .star else {
-            throw Error.invalidChar(location, ac1.codePoint)
+            throw Error.invalidCharacter(location, ac1.codePoint)
         }
         location.addColumn(length: 1)
         
@@ -260,12 +212,12 @@ public class JSONTokenizer {
         
         if c1.codePoint == .num0 {
             location.addColumn(length: 1)
-        } else if c1.codePoint.isNum1To9() {
+        } else if c1.codePoint.isDigit1To9() {
             location.addColumn(length: 1)
             
             while true {
                 if let c2 = try char(at: location),
-                    c2.codePoint.isNum0to9()
+                    c2.codePoint.isDigit()
                 {
                     location.addColumn(length: 1)
                 } else {
@@ -273,7 +225,7 @@ public class JSONTokenizer {
                 }
             }
         } else {
-            throw Error.invalidChar(location, c1.codePoint)
+            throw Error.invalidCharacter(location, c1.codePoint)
         }
         
         guard let c2 = try char(at: location) else {
@@ -285,7 +237,7 @@ public class JSONTokenizer {
             
             while true {
                 if let c3 = try char(at: location),
-                    c3.codePoint.isNum0to9()
+                    c3.codePoint.isDigit()
                 {
                     location.addColumn(length: 1)
                 } else {
@@ -309,7 +261,7 @@ public class JSONTokenizer {
             
             while true {
                 if let c5 = try char(at: location),
-                    c5.codePoint.isNum0to9()
+                    c5.codePoint.isDigit()
                 {
                     location.addColumn(length: 1)
                 } else {
@@ -328,7 +280,7 @@ public class JSONTokenizer {
             throw Error.unexceptedEnd(location)
         }
         guard c0.codePoint == .doubleQuote else {
-            throw Error.invalidChar(location, c0.codePoint)
+            throw Error.invalidCharacter(location, c0.codePoint)
         }
         location.addColumn(length: 1)
         
@@ -341,6 +293,7 @@ public class JSONTokenizer {
                 location.addColumn(length: 1)
                 return buildToken(start: start, kind: .string)
             } else if c1.codePoint == .backSlash {
+                location.addColumn(length: 1)
                 guard let c2 = try char(at: location) else {
                     throw Error.unexceptedEnd(location)
                 }
@@ -363,15 +316,15 @@ public class JSONTokenizer {
                             throw Error.unexceptedEnd(location)
                         }
                         guard c3.codePoint.isHex() else {
-                            throw Error.invalidChar(location, c3.codePoint)
+                            throw Error.invalidCharacter(location, c3.codePoint)
                         }
                         location.addColumn(length: 1)
                     }
                 } else {
-                    throw Error.invalidChar(location, c2c)
+                    throw Error.invalidCharacter(location, c2c)
                 }
             } else if c1.codePoint.isControlCode() {
-                throw Error.invalidChar(location, c1.codePoint)
+                throw Error.invalidCharacter(location, c1.codePoint)
             } else {
                 location.addColumn(length: c1.length)
             }
@@ -385,7 +338,7 @@ public class JSONTokenizer {
             throw Error.unexceptedEnd(location)
         }
         guard c0.codePoint.isAlpha() else {
-            throw Error.invalidChar(location, c0.codePoint)
+            throw Error.invalidCharacter(location, c0.codePoint)
         }
         
         while true {
@@ -409,7 +362,7 @@ public class JSONTokenizer {
     
     private func char(at location: SourceLocation) throws -> DecodedUnicodeChar? {
         do {
-            guard let ch = try UTF8Decoder.readUTF8(at: location.offset, from: data) else {
+            guard let ch = try UTF8Decoder.decodeUTF8(at: location.offset, from: data) else {
                 return nil
             }
             return ch
@@ -417,4 +370,5 @@ public class JSONTokenizer {
             throw Error.utf8Error(location, error)
         }
     }
+    
 }

@@ -142,7 +142,7 @@ null
         let tk = JSONTokenizer(data: data)
         var actual = [JSONToken]()
         while true {
-            let token = try tk.read()
+            let token = try tk.readRaw()
             if case .end = token.kind {
                 break
             }

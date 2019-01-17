@@ -1,4 +1,4 @@
-public struct JSONToken : Equatable {
+public struct JSONToken : Equatable, CustomStringConvertible {
     public enum Kind {
         case end
         case newLine
@@ -27,6 +27,10 @@ public struct JSONToken : Equatable {
         self.location = location
         self.length = length
         self.kind = kind
+    }
+    
+    public var description: String {
+        return "JSONToken(\(kind), \(length) bytes, at \(location))"
     }
 }
 
