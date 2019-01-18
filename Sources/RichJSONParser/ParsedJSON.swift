@@ -8,6 +8,17 @@ public struct ParsedJSON : Equatable {
         case string(String)
         case array([ParsedJSON])
         case object(OrderedDictionary<String, ParsedJSON>)
+        
+        public var kind : JSON.Kind {
+            switch self {
+            case .null: return .null
+            case .boolean: return .boolean
+            case .number: return .number
+            case .string: return .string
+            case .array: return .array
+            case .object: return .object
+            }
+        }
     }
     
     public var location: SourceLocation
@@ -35,3 +46,22 @@ extension ParsedJSON {
         }
     }
 }
+
+extension JSON {
+    public func toParsedJSON(dummyLocation loc: SourceLocation) -> ParsedJSON {
+        switch self {
+        case .null: return ParsedJSON(location: loc, value: .null)
+        case .boolean(let b): return ParsedJSON(location: loc, value: .boolean(b))
+        case .number(let s): return ParsedJSON(location: loc, value: .number(s))
+        case .string(let s): return ParsedJSON(location: loc, value: .string(s))
+        case .array(let a):
+            return ParsedJSON(location: loc,
+                              value: .array(a.map { $0.toParsedJSON(dummyLocation: loc) }))
+        case .object(let o):
+            return ParsedJSON(location: loc,
+                              value: .object(o.mapValues { $0.toParsedJSON(dummyLocation: loc) }))
+            
+        }
+    }
+}
+
