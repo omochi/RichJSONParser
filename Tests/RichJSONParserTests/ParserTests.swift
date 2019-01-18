@@ -87,6 +87,24 @@ class ParserTests: XCTestCase {
                         ])))
     }
     
+    func testComment1() throws {
+        let json = """
+{
+  "name": "taro", // ケツカンマ
+  /* ブロックコメント
+  "age": 30
+  */
+  "foods": [1,] // ケツカンマ
+}
+"""
+        XCTAssertEqual(try parse(json).toJSON(),
+                       JSON.object(OrderedDictionary([
+                        "name": .string("taro"),
+                        "foods": .array([.number("1")])
+                        ])))
+        
+    }
+    
     func test1() throws {
         let json = """
 {
@@ -122,7 +140,6 @@ class ParserTests: XCTestCase {
                                                                        value: .string("banana"))
                                                             ])),
                         ]))))
-        
     }
 
     private func parse(_ json: String) throws -> ParsedJSON {
