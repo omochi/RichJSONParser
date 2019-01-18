@@ -72,10 +72,10 @@ public enum JSONStringEscape {
                         guard let c2 = try UTF8Decoder.decodeUTF8(at: offset, from: data) else {
                             throw Error.unexceptedEnd(offset: offset)
                         }
-                        guard c2.codePoint.isHex() else {
+                        guard c2.codePoint.isHex else {
                             throw Error.invalidCharacter(offset: offset, c2.codePoint)
                         }
-                        value = value * 16 + UInt32(c2.codePoint.hexValue()!)
+                        value = value * 16 + UInt32(c2.codePoint.hexValue!)
                         offset += 1
                     }
                     guard let char = Unicode.Scalar(value) else {
@@ -85,7 +85,7 @@ public enum JSONStringEscape {
                 } else {
                     throw Error.invalidCharacter(offset: offset, c1c)
                 }
-            } else if c0.codePoint.isControlCode() {
+            } else if c0.codePoint.isControlCode {
                 throw Error.invalidCharacter(offset: offset, c0.codePoint)
             } else {
                 let start = data.startIndex + offset
@@ -125,7 +125,7 @@ public enum JSONStringEscape {
             } else if c0c == .tab {
                 offset += 1
                 result.append(contentsOf: "\\t".utf8)
-            } else if c0c.isASCII && !c0c.isControlCode() {
+            } else if c0c.isASCII && !c0c.isControlCode {
                 let start = data.index(data.startIndex, offsetBy: offset)
                 let end = data.index(start, offsetBy: c0.length)
                 offset += c0.length

@@ -51,21 +51,21 @@ internal extension Unicode.Scalar {
     static let alphaLF = Unicode.Scalar(0x46)!
     static let alphaLZ = Unicode.Scalar(0x5A)!
     
-    func isDigit() -> Bool {
+    var isDigit: Bool {
         return .num0 <= self && self <= .num9
     }
     
-    func isDigit1To9() -> Bool {
+    var isDigit1To9: Bool {
         return .num1 <= self && self <= .num9
     }
     
-    func isHex() -> Bool {
-        return isDigit() ||
+    var isHex: Bool {
+        return isDigit ||
             .alphaSA <= self && self <= .alphaSF ||
             .alphaLA <= self && self <= .alphaLF
     }
     
-    func hexValue() -> Int? {
+    var hexValue: Int? {
         if .num0 <= self && self <= .num9 {
             return Int(self.value - Unicode.Scalar.num0.value)
         } else if .alphaSA <= self && self <= .alphaSF {
@@ -77,12 +77,12 @@ internal extension Unicode.Scalar {
         }
     }
     
-    func isAlpha() -> Bool {
+    var isAlpha: Bool {
         return .alphaSA <= self && self <= .alphaSZ ||
             .alphaLA <= self && self <= .alphaLZ
     }
     
-    func isControlCode() -> Bool {
+    var isControlCode: Bool {
         let x = self.value
         
         return 0x00 <= x && x <= 0x1F ||

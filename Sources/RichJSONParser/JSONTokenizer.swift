@@ -99,11 +99,11 @@ public class JSONTokenizer {
             }
             
             throw Error.invalidCharacter(location, c0c)
-        } else if c0c == .minus || c0c.isDigit() {
+        } else if c0c == .minus || c0c.isDigit {
             return try readNumber()
         } else if c0c == .doubleQuote {
             return try readString()
-        } else if c0c.isAlpha() {
+        } else if c0c.isAlpha {
             return try readKeyword()
         } else if c0c == .leftBracket {
             return buildToken(start: start, kind: .leftBracket)
@@ -219,12 +219,12 @@ public class JSONTokenizer {
         
         if c1.codePoint == .num0 {
             location.addColumn(length: 1)
-        } else if c1.codePoint.isDigit1To9() {
+        } else if c1.codePoint.isDigit1To9 {
             location.addColumn(length: 1)
             
             while true {
                 if let c2 = try char(at: location),
-                    c2.codePoint.isDigit()
+                    c2.codePoint.isDigit
                 {
                     location.addColumn(length: 1)
                 } else {
@@ -244,7 +244,7 @@ public class JSONTokenizer {
             
             while true {
                 if let c3 = try char(at: location),
-                    c3.codePoint.isDigit()
+                    c3.codePoint.isDigit
                 {
                     location.addColumn(length: 1)
                 } else {
@@ -268,7 +268,7 @@ public class JSONTokenizer {
             
             while true {
                 if let c5 = try char(at: location),
-                    c5.codePoint.isDigit()
+                    c5.codePoint.isDigit
                 {
                     location.addColumn(length: 1)
                 } else {
@@ -323,7 +323,7 @@ public class JSONTokenizer {
                         guard let c3 = try char(at: location) else {
                             throw Error.unexceptedEnd(location)
                         }
-                        guard c3.codePoint.isHex() else {
+                        guard c3.codePoint.isHex else {
                             throw Error.invalidCharacter(location, c3.codePoint)
                         }
                         location.addColumn(length: 1)
@@ -331,7 +331,7 @@ public class JSONTokenizer {
                 } else {
                     throw Error.invalidCharacter(location, c2c)
                 }
-            } else if c1.codePoint.isControlCode() {
+            } else if c1.codePoint.isControlCode {
                 throw Error.invalidCharacter(location, c1.codePoint)
             } else {
                 location.addColumn(length: c1.length)
@@ -345,13 +345,13 @@ public class JSONTokenizer {
         guard let c0 = try char(at: location) else {
             throw Error.unexceptedEnd(location)
         }
-        guard c0.codePoint.isAlpha() else {
+        guard c0.codePoint.isAlpha else {
             throw Error.invalidCharacter(location, c0.codePoint)
         }
         
         while true {
             if let c1 = try char(at: location),
-                c1.codePoint.isAlpha()
+                c1.codePoint.isAlpha
             {
                 location.addColumn(length: 1)
             } else {
