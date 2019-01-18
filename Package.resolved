@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "OrderedDictionary",
+        "repositoryURL": "https://github.com/omochi/OrderedDictionary.git",
+        "state": {
+          "branch": null,
+          "revision": "ff5ad8a027588a8432638fc577ccc6517a887537",
+          "version": "1.6.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
