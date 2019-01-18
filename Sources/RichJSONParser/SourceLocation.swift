@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SourceLocation : Equatable, CustomStringConvertible {
+public struct SourceLocation : Equatable, CustomStringConvertible, Codable {
     public var offset: Int
     public var line: Int
     public var columnInByte: Int
