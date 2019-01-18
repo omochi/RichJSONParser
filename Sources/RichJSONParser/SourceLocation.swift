@@ -15,7 +15,7 @@ public struct SourceLocation : Equatable, CustomStringConvertible {
     }
     
     public var description: String {
-        return String(format: "%d:%d(%d)", line, columnInByte, offset)
+        return "\(line):\(columnInByte)(\(offset))"
     }
     
     public init() {

@@ -13,8 +13,8 @@ public enum JSONStringEscape {
             case .invalidCharacter(offset: let o, let ch):
                 return "invalid character (\(ch.debugDescription)) at \(o)"
             case .invalidCodePoint(offset: let o, let c):
-                let hex = String(format: "0x%04X", c)
-                return "invalid unicode code point (\(hex)) at \(o)"
+                let cs = c.format("U+%04X")
+                return "invalid unicode code point (\(cs)) at \(o)"
             }
         }
     }
@@ -23,12 +23,20 @@ public enum JSONStringEscape {
         var result = Data()
         
         var offset = 0
+
+        if let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data),
+            c0.codePoint == .doubleQuote {
+            offset += 1
+        }
+        
         while true {
             guard let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data) else {
                 return result
             }
             
-            if c0.codePoint == .backSlash {
+            if c0.codePoint == .doubleQuote {
+                return result
+            } else if c0.codePoint == .backSlash {
                 let escapeStart = offset
                 offset += 1
                 guard let c1 = try UTF8Decoder.decodeUTF8(at: offset, from: data) else {
@@ -75,15 +83,15 @@ public enum JSONStringEscape {
                     }
                     result.append(contentsOf: String(char).utf8)
                 } else {
-                    throw Error.invalidCharacter(offset: offset + 1, c1c)
+                    throw Error.invalidCharacter(offset: offset, c1c)
                 }
             } else if c0.codePoint.isControlCode() {
                 throw Error.invalidCharacter(offset: offset, c0.codePoint)
             } else {
-                let start = data.index(data.startIndex, offsetBy: offset)
-                let end = data.index(start, offsetBy: c0.length)
-                offset += c0.length
+                let start = data.startIndex + offset
+                let end = start + c0.length
                 result.append(contentsOf: data[start..<end])
+                offset += c0.length
             }
         }
     }

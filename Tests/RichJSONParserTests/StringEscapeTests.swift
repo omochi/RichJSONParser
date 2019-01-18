@@ -8,6 +8,12 @@ class StringEscapeTests: XCTestCase {
         XCTAssertEqual(b, "aあ\nい")
     }
     
+    func testUnescape2() throws {
+        let a = "\"a\\u3042\\n\\u3044\"b"
+        let b = try unescape(string: a)
+        XCTAssertEqual(b, "aあ\nい")
+    }
+    
     func testEscape1() throws {
         let a = "aあ\nい"
         let b = try escape(string: a)

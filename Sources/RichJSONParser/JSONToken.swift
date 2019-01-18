@@ -19,14 +19,17 @@ public struct JSONToken : Equatable, CustomStringConvertible {
     public var location: SourceLocation
     public var length: Int
     public var kind: Kind
+    public var string: String?
     
     public init(location: SourceLocation,
                 length: Int,
-                kind: Kind)
+                kind: Kind,
+                string: String?)
     {
         self.location = location
         self.length = length
         self.kind = kind
+        self.string = string
     }
     
     public var description: String {

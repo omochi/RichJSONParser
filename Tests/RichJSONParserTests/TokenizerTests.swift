@@ -13,26 +13,23 @@ class TokenizerTests : XCTestCase {
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 1, kind: .number),
+                                  length: 1, kind: .number, string: "1"),
                         JSONToken(location: SourceLocation(offset: 1,
                                                            line: 1,
                                                            columnInByte: 2),
-                                  length: 1, kind: .newLine),
+                                  length: 1, kind: .newLine, string: nil),
                         JSONToken(location: SourceLocation(offset: 2,
                                                            line: 2,
                                                            columnInByte: 1),
-                                  length: 6,
-                                  kind: .lineComment),
+                                  length: 6, kind: .lineComment, string: nil),
                         JSONToken(location: SourceLocation(offset: 8,
                                                            line: 2,
                                                            columnInByte: 7),
-                                  length: 1,
-                                  kind: .newLine),
+                                  length: 1, kind: .newLine, string: nil),
                         JSONToken(location: SourceLocation(offset: 9,
                                                            line: 3,
                                                            columnInByte: 1),
-                                  length: 1,
-                                  kind: .number)
+                                  length: 1, kind: .number, string: "2")
             ])
     }
     
@@ -48,16 +45,15 @@ aaa
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 9, kind: .blockComment),
+                                  length: 9, kind: .blockComment, string: nil),
                         JSONToken(location: SourceLocation(offset: 9,
                                                            line: 3,
                                                            columnInByte: 3),
-                                  length: 1, kind: .newLine),
+                                  length: 1, kind: .newLine, string: nil),
                         JSONToken(location: SourceLocation(offset: 10,
                                                            line: 4,
                                                            columnInByte: 1),
-                                  length: 1,
-                                  kind: .number)
+                                  length: 1, kind: .number, string: "1")
             ])
     }
     
@@ -67,18 +63,15 @@ aaa
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 3,
-                                  kind: .number),
+                                  length: 3, kind: .number, string: "123"),
                         JSONToken(location: SourceLocation(offset: 3,
                                                            line: 1,
                                                            columnInByte: 4),
-                                  length: 1,
-                                  kind: .whiteSpace),
+                                  length: 1, kind: .whiteSpace, string: nil),
                         JSONToken(location: SourceLocation(offset: 4,
                                                            line: 1,
                                                            columnInByte: 5),
-                                  length: 3,
-                                  kind: .number)
+                                  length: 3, kind: .number, string: "456")
             ])
 
     }
@@ -89,8 +82,7 @@ aaa
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 6,
-                                  kind: .number)
+                                  length: 6, kind: .number, string: "-0.123")
             ])
     }
     
@@ -100,8 +92,7 @@ aaa
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 6,
-                                  kind: .number)
+                                  length: 6, kind: .number, string: "1.0e+6")
             ])
     }
     
@@ -114,8 +105,7 @@ aaa
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 7,
-                                  kind: .string)
+                                  length: 7, kind: .string, string: "hello")
             ])
     }
     
@@ -128,8 +118,7 @@ null
                         JSONToken(location: SourceLocation(offset: 0,
                                                            line: 1,
                                                            columnInByte: 1),
-                                  length: 4,
-                                  kind: .keyword)
+                                  length: 4, kind: .keyword, string: "null")
             ])
     }
     

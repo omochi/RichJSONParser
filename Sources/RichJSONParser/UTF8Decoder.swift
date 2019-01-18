@@ -2,27 +2,29 @@ import Foundation
 
 public enum UTF8Decoder {
     public enum Error : Swift.Error, CustomStringConvertible {
-        case invalidByte(UInt8)
-        case invalidLength(Int8)
-        case invalidCodePoint(UInt32)
-        case unexceptedHead(offset: Int8)
-        case unexceptedBody
-        case unexceptedEnd(offset: Int8)
+        case invalidByte(offset: Int, UInt8)
+        case invalidLength(offset: Int, Int8)
+        case invalidCodePoint(offset: Int, UInt32)
+        case unexceptedHead(offset: Int)
+        case unexceptedBody(offset: Int)
+        case unexceptedEnd(offset: Int)
         
         public var description: String {
             switch self {
-            case .invalidByte(let b):
-                return String(format: "invalid byte: %02x", b)
-            case .invalidLength(let len):
-                return String(format: "invalid length: %d", len)
-            case .invalidCodePoint(let c):
-                return String(format: "invalid code point: %04x", c)
+            case .invalidByte(let o, let b):
+                let bs = b.format("0x%02X")
+                return "invalid byte (\(bs)) at \(o)"
+            case .invalidLength(let o, let len):
+                return "invalid length (\(len)) at \(o)"
+            case .invalidCodePoint(let o, let c):
+                let cs = c.format("U+%04X")
+                return "invalid code point (\(cs)) at \(o)"
             case .unexceptedHead(let o):
-                return String(format: "unexcepted head byte at %d", o)
-            case .unexceptedBody:
-                return String(format: "unexcepted body byte at start")
+                return "unexcepted head byte at \(o)"
+            case .unexceptedBody(let o):
+                return "unexcepted body byte at \(o)"
             case .unexceptedEnd(let o):
-                return String(format: "unexcepted end at %d", o)
+                return "unexcepted end at \(o)"
             }
         }
     }
@@ -52,11 +54,17 @@ internal extension UTF8Decoder {
     }
 
     static func decodeUTF8(at start: Int, from data: Data) throws -> DecodedUnicodeChar? {
-        guard data.startIndex + start < data.endIndex else {
+        func read(_ offset: Int) -> UInt8? {
+            guard data.startIndex + offset < data.endIndex else {
+                return nil
+            }
+            return data[data.startIndex + offset]
+        }
+
+        guard let b0 = read(start) else {
             return nil
         }
-        
-        let b0 = data[data.startIndex + start]
+
         switch ByteKind(byte: b0) {
         case .head(length: let length):
             switch length {
@@ -65,33 +73,32 @@ internal extension UTF8Decoder {
             case 2, 3, 4:
                 var value: UInt32 = UInt32((b0 << length) >> length)
                 
-                guard start + Int(length) - 1 < data.count else {
-                    throw Error.unexceptedEnd(offset: length - 1)
-                }
-
-                for offset in 1..<length {
-                    let b1 = data[data.startIndex + start + Int(offset)]
+                for i in 0..<(Int(length) - 1) {
+                    let position = start + i + 1
+                    guard let b1 = read(position) else {
+                        throw Error.unexceptedEnd(offset: position)
+                    }
                     switch ByteKind(byte: b1) {
                     case .head:
-                        throw Error.unexceptedHead(offset: offset)
+                        throw Error.unexceptedHead(offset: position)
                     case .body:
                         value = (value << 6) + UInt32(b1 & 0b0011_1111)
                     case .invalid:
-                        throw Error.invalidByte(b1)
+                        throw Error.invalidByte(offset: position, b1)
                     }
                 }
                 guard let codePoint = Unicode.Scalar(value) else {
-                    throw Error.invalidCodePoint(value)
+                    throw Error.invalidCodePoint(offset: start, value)
                 }
                 
                 return DecodedUnicodeChar(codePoint: codePoint, length: Int(length))
             default:
-                throw Error.invalidLength(length)
+                throw Error.invalidLength(offset: start, length)
             }
         case .body:
-            throw Error.unexceptedBody
+            throw Error.unexceptedBody(offset: start)
         case .invalid:
-            throw Error.invalidByte(b0)
+            throw Error.invalidByte(offset: start, b0)
         }
     }
 }
