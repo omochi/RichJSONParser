@@ -1,6 +1,6 @@
 import OrderedDictionary
 
-public enum JSON : Equatable {
+public enum JSON : Equatable, Hashable {
     case null
     case boolean(Bool)
     case number(String)
