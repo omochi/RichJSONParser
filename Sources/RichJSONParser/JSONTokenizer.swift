@@ -106,16 +106,22 @@ public class JSONTokenizer {
         } else if c0c.isAlpha {
             return try readKeyword()
         } else if c0c == .leftBracket {
+            location.addColumn(length: 1)
             return buildToken(start: start, kind: .leftBracket)
         } else if c0c == .rightBracket {
+            location.addColumn(length: 1)
             return buildToken(start: start, kind: .rightBracket)
         } else if c0c == .leftBrace {
+            location.addColumn(length: 1)
             return buildToken(start: start, kind: .leftBrace)
         } else if c0c == .rightBrace {
+            location.addColumn(length: 1)
             return buildToken(start: start, kind: .rightBrace)
         } else if c0c == .comma {
+            location.addColumn(length: 1)
             return buildToken(start: start, kind: .comma)
         } else if c0c == .colon {
+            location.addColumn(length: 1)
              return buildToken(start: start, kind: .colon)
         } else {
             throw Error.invalidCharacter(location, c0c)

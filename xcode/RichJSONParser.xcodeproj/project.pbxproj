@@ -26,6 +26,7 @@
 		D639344C21F066E8001DFC2A /* Characters.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639344B21F066E8001DFC2A /* Characters.swift */; };
 		D639344E21F0729C001DFC2A /* StringEscapeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639344D21F0729C001DFC2A /* StringEscapeTests.swift */; };
 		D639345021F163D2001DFC2A /* FormatExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639344F21F163D2001DFC2A /* FormatExtension.swift */; };
+		D639345221F1789D001DFC2A /* ParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639345121F1789D001DFC2A /* ParserTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +62,7 @@
 		D639344B21F066E8001DFC2A /* Characters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Characters.swift; sourceTree = "<group>"; };
 		D639344D21F0729C001DFC2A /* StringEscapeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringEscapeTests.swift; sourceTree = "<group>"; };
 		D639344F21F163D2001DFC2A /* FormatExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatExtension.swift; sourceTree = "<group>"; };
+		D639345121F1789D001DFC2A /* ParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,6 +158,7 @@
 				D639344421F0403E001DFC2A /* XCTestManifests.swift */,
 				D639344321F0403E001DFC2A /* TokenizerTests.swift */,
 				D639344D21F0729C001DFC2A /* StringEscapeTests.swift */,
+				D639345121F1789D001DFC2A /* ParserTests.swift */,
 			);
 			name = Sources;
 			path = ../../Tests/RichJSONParserTests;
@@ -290,6 +293,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D639345221F1789D001DFC2A /* ParserTests.swift in Sources */,
 				D639344E21F0729C001DFC2A /* StringEscapeTests.swift in Sources */,
 				D639344521F0403E001DFC2A /* TokenizerTests.swift in Sources */,
 				D639344621F0403E001DFC2A /* XCTestManifests.swift in Sources */,
