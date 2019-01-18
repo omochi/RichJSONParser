@@ -21,14 +21,12 @@ class StringEscapeTests: XCTestCase {
     }
     
     func unescape(string: String) throws -> String {
-        let edata = string.data(using: .utf8)!
-        let udata = try JSONStringEscape.unescape(data: edata)
-        return String(data: udata, encoding: .utf8)!
+        let data = string.data(using: .utf8)!
+        return try JSONStringEscape.unescape(data: data)
     }
     
     func escape(string: String) throws -> String {
-        let udata = string.data(using: .utf8)!
-        let edata = try JSONStringEscape.escape(data: udata)
-        return String(data: edata, encoding: .utf8)!
+        let data = try JSONStringEscape.escape(string: string)
+        return String(data: data, encoding: .utf8)!
     }
 }

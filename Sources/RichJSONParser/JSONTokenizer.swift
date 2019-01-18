@@ -377,9 +377,8 @@ public class JSONTokenizer {
     }
     
     private func buildStringToken(start: SourceLocation) throws -> JSONToken {
-        let dataE = currentTokenData(start: start)
-        let dataU = try unescapeString(data: dataE, location: start)
-        let string = try decodeUTF8(data: dataU, location: start)
+        let data = currentTokenData(start: start)
+        let string = try unescapeString(data: data, location: start)
         return buildToken(start: start, kind: .string, string: string)
     }
     
@@ -399,7 +398,7 @@ public class JSONTokenizer {
         return data[s..<e]
     }
     
-    private func unescapeString(data: Data, location: SourceLocation) throws -> Data {
+    private func unescapeString(data: Data, location: SourceLocation) throws -> String {
         do {
             return try JSONStringEscape.unescape(data: data)
         } catch {

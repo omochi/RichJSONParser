@@ -27,6 +27,8 @@
 		D639344E21F0729C001DFC2A /* StringEscapeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639344D21F0729C001DFC2A /* StringEscapeTests.swift */; };
 		D639345021F163D2001DFC2A /* FormatExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639344F21F163D2001DFC2A /* FormatExtension.swift */; };
 		D639345221F1789D001DFC2A /* ParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D639345121F1789D001DFC2A /* ParserTests.swift */; };
+		D69762BD21F1C0B500C519F1 /* JSONSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69762BC21F1C0B500C519F1 /* JSONSerializer.swift */; };
+		D69762BF21F1C89F00C519F1 /* SerializerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69762BE21F1C89F00C519F1 /* SerializerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +65,8 @@
 		D639344D21F0729C001DFC2A /* StringEscapeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringEscapeTests.swift; sourceTree = "<group>"; };
 		D639344F21F163D2001DFC2A /* FormatExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormatExtension.swift; sourceTree = "<group>"; };
 		D639345121F1789D001DFC2A /* ParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParserTests.swift; sourceTree = "<group>"; };
+		D69762BC21F1C0B500C519F1 /* JSONSerializer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONSerializer.swift; sourceTree = "<group>"; };
+		D69762BE21F1C89F00C519F1 /* SerializerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SerializerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +128,7 @@
 				D639342B21F0401F001DFC2A /* JSONToken.swift */,
 				D639343121F0401F001DFC2A /* JSONTokenizer.swift */,
 				D639342F21F0401F001DFC2A /* JSONParser.swift */,
+				D69762BC21F1C0B500C519F1 /* JSONSerializer.swift */,
 				D639342D21F0401F001DFC2A /* SourceLocation.swift */,
 				D639343221F0401F001DFC2A /* UTF8Decoder.swift */,
 				D639344721F049F4001DFC2A /* DecodedUnicodeChar.swift */,
@@ -159,6 +164,7 @@
 				D639344321F0403E001DFC2A /* TokenizerTests.swift */,
 				D639344D21F0729C001DFC2A /* StringEscapeTests.swift */,
 				D639345121F1789D001DFC2A /* ParserTests.swift */,
+				D69762BE21F1C89F00C519F1 /* SerializerTests.swift */,
 			);
 			name = Sources;
 			path = ../../Tests/RichJSONParserTests;
@@ -283,6 +289,7 @@
 				D639343621F0401F001DFC2A /* JSONNumber.swift in Sources */,
 				D639344A21F06418001DFC2A /* JSONStringEscape.swift in Sources */,
 				D639343E21F0401F001DFC2A /* UTF8Decoder.swift in Sources */,
+				D69762BD21F1C0B500C519F1 /* JSONSerializer.swift in Sources */,
 				D639343D21F0401F001DFC2A /* JSONTokenizer.swift in Sources */,
 				D639343721F0401F001DFC2A /* JSONToken.swift in Sources */,
 				D639344021F0401F001DFC2A /* ParsedJSON.swift in Sources */,
@@ -293,6 +300,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D69762BF21F1C89F00C519F1 /* SerializerTests.swift in Sources */,
 				D639345221F1789D001DFC2A /* ParserTests.swift in Sources */,
 				D639344E21F0729C001DFC2A /* StringEscapeTests.swift in Sources */,
 				D639344521F0403E001DFC2A /* TokenizerTests.swift in Sources */,
