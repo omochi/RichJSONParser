@@ -26,7 +26,7 @@ class StringEscapeTests: XCTestCase {
     }
     
     func escape(string: String) throws -> String {
-        let data = try JSONStringEscape.escape(string: string)
+        let data = JSONStringEscape.escape(string: string)
         return String(data: data, encoding: .utf8)!
     }
 }
