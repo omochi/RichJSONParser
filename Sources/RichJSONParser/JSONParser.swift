@@ -6,13 +6,13 @@ internal let trueKeyword = "true"
 internal let falseKeyword = "false"
 
 public class JSONParser {
-    public enum Error : Swift.Error, CustomStringConvertible {
+    public enum Error : LocalizedError {
         case unexceptedEnd(SourceLocation)
         case invalidToken(JSONToken)
         case unexceptedToken(JSONToken, expected: String)
         case keyNotString(SourceLocation)
         
-        public var description: String {
+        public var errorDescription: String? {
             switch self {
             case .unexceptedEnd(let loc):
                 return "unexcepted end at \(loc)"

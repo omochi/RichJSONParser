@@ -1,13 +1,13 @@
 import Foundation
 
 public enum JSONStringEscape {
-    public enum Error : Swift.Error, CustomStringConvertible {
+    public enum Error : LocalizedError {
         case unexceptedEnd(offset: Int)
         case invalidCharacter(offset: Int, Unicode.Scalar)
         case invalidCodePoint(offset: Int, UInt32)
         case utf8DecodeError(offset: Int)
         
-        public var description: String {
+        public var errorDescription: String? {
             switch self {
             case .unexceptedEnd(offset: let o):
                 return "unexcepted end of data at \(o)"
