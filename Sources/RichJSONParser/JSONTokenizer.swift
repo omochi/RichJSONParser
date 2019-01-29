@@ -1,13 +1,15 @@
 import Foundation
 
 public class JSONTokenizer {
-    public enum Error : LocalizedError {
+    public enum Error : LocalizedError, CustomStringConvertible {
         case invalidCharacter(SourceLocation, Unicode.Scalar)
         case unexceptedEnd(SourceLocation)
         case utf8DecodeError(SourceLocation, Swift.Error?)
         case stringUnescapeError(SourceLocation, Swift.Error)
         
-        public var errorDescription: String? {
+        public var errorDescription: String? { return description }
+        
+        public var description: String {
             switch self {
             case .invalidCharacter(let loc, let ch):
                 return "invalid character (\(ch.debugDescription)) at \(loc)"

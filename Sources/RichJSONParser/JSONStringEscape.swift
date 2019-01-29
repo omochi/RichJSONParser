@@ -1,13 +1,15 @@
 import Foundation
 
 public enum JSONStringEscape {
-    public enum Error : LocalizedError {
+    public enum Error : LocalizedError, CustomStringConvertible {
         case unexceptedEnd(offset: Int)
         case invalidCharacter(offset: Int, Unicode.Scalar)
         case invalidCodePoint(offset: Int, UInt32)
         case utf8DecodeError(offset: Int)
         
-        public var errorDescription: String? {
+        public var errorDescription: String? { return description }
+        
+        public var description: String {
             switch self {
             case .unexceptedEnd(offset: let o):
                 return "unexcepted end of data at \(o)"

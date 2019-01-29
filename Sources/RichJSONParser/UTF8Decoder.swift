@@ -1,7 +1,7 @@
 import Foundation
 
 public enum UTF8Decoder {
-    public enum Error : LocalizedError {
+    public enum Error : LocalizedError, CustomStringConvertible {
         case invalidByte(offset: Int, UInt8)
         case invalidLength(offset: Int, Int8)
         case invalidCodePoint(offset: Int, UInt32)
@@ -9,7 +9,9 @@ public enum UTF8Decoder {
         case unexceptedBody(offset: Int)
         case unexceptedEnd(offset: Int)
         
-        public var errorDescription: String? {
+        public var errorDescription: String? { return description }
+        
+        public var description: String {
             switch self {
             case .invalidByte(let o, let b):
                 let bs = b.format("0x%02X")
