@@ -30,9 +30,12 @@ public class JSONTokenizer {
     private let data: Data
     public var location: SourceLocation
     
-    public init(data: Data) {
+    public init(data: Data, file: URL? = nil) {
         self.data = Data(data) // drop subData
-        self.location = SourceLocation(offset: 0, line: 1, columnInByte: 1)
+        self.location = SourceLocation(offset: 0,
+                                       line: 1,
+                                       columnInByte: 1,
+                                       file: file)
     }
     
     public func data(of token: JSONToken) -> Data {

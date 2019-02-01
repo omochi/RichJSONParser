@@ -10,25 +10,15 @@ class TokenizerTests : XCTestCase {
 """
         try testTokens(string: str,
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 1, kind: .number, string: "1"),
-                        JSONToken(location: SourceLocation(offset: 1,
-                                                           line: 1,
-                                                           columnInByte: 2),
+                        JSONToken(location: sloc(1, 1, 2),
                                   length: 1, kind: .newLine, string: nil),
-                        JSONToken(location: SourceLocation(offset: 2,
-                                                           line: 2,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(2, 2, 1),
                                   length: 6, kind: .lineComment, string: nil),
-                        JSONToken(location: SourceLocation(offset: 8,
-                                                           line: 2,
-                                                           columnInByte: 7),
+                        JSONToken(location: sloc(8, 2, 7),
                                   length: 1, kind: .newLine, string: nil),
-                        JSONToken(location: SourceLocation(offset: 9,
-                                                           line: 3,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(9, 3, 1),
                                   length: 1, kind: .number, string: "2")
             ])
     }
@@ -42,17 +32,11 @@ aaa
 """
         try testTokens(string: str,
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 9, kind: .blockComment, string: nil),
-                        JSONToken(location: SourceLocation(offset: 9,
-                                                           line: 3,
-                                                           columnInByte: 3),
+                        JSONToken(location: sloc(9, 3, 3),
                                   length: 1, kind: .newLine, string: nil),
-                        JSONToken(location: SourceLocation(offset: 10,
-                                                           line: 4,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(10, 4, 1),
                                   length: 1, kind: .number, string: "1")
             ])
     }
@@ -60,17 +44,11 @@ aaa
     func testNumber1() throws {
         try testTokens(string: "123 456",
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 3, kind: .number, string: "123"),
-                        JSONToken(location: SourceLocation(offset: 3,
-                                                           line: 1,
-                                                           columnInByte: 4),
+                        JSONToken(location: sloc(3, 1, 4),
                                   length: 1, kind: .whiteSpace, string: nil),
-                        JSONToken(location: SourceLocation(offset: 4,
-                                                           line: 1,
-                                                           columnInByte: 5),
+                        JSONToken(location: sloc(4, 1, 5),
                                   length: 3, kind: .number, string: "456")
             ])
 
@@ -79,9 +57,7 @@ aaa
     func testNumber2() throws {
         try testTokens(string: "-0.123",
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 6, kind: .number, string: "-0.123")
             ])
     }
@@ -89,9 +65,7 @@ aaa
     func testNumber3() throws {
         try testTokens(string: "1.0e+6",
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 6, kind: .number, string: "1.0e+6")
             ])
     }
@@ -102,9 +76,7 @@ aaa
 """
         try testTokens(string: str,
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 7, kind: .string, string: "hello")
             ])
     }
@@ -115,9 +87,7 @@ null
 """
         try testTokens(string: str,
                        expected: [
-                        JSONToken(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                        JSONToken(location: sloc(0, 1, 1),
                                   length: 4, kind: .keyword, string: "null")
             ])
     }

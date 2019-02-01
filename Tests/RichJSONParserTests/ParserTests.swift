@@ -2,6 +2,16 @@ import XCTest
 import RichJSONParser
 import OrderedDictionary
 
+internal func sloc(_ offset: Int,
+                   _ line: Int,
+                   _ col: Int) -> SourceLocation
+{
+    return SourceLocation(offset: offset,
+                          line: line,
+                          columnInByte: col,
+                          file: nil)
+}
+
 class ParserTests: XCTestCase {
     func testTypes() throws {
         XCTAssertEqual(try parse("[null, true, false, 1, \"\", [], {}]").toJSON(),
@@ -19,9 +29,7 @@ class ParserTests: XCTestCase {
     func testNumber1() throws {
         let o = try parse("  123  ")
         
-        XCTAssertEqual(o, ParsedJSON(location: SourceLocation(offset: 2,
-                                                              line: 1,
-                                                              columnInByte: 3),
+        XCTAssertEqual(o, ParsedJSON(location: sloc(2, 1, 3),
                                      value: .number("123")))
     }
     
@@ -114,29 +122,17 @@ class ParserTests: XCTestCase {
 }
 """
         XCTAssertEqual(try parse(json),
-                       ParsedJSON(location: SourceLocation(offset: 0,
-                                                           line: 1,
-                                                           columnInByte: 1),
+                       ParsedJSON(location: sloc(0, 1, 1),
                                   value: .object(OrderedDictionary([
-                                    "name": ParsedJSON(location: SourceLocation(offset: 12,
-                                                                                line: 2,
-                                                                                columnInByte: 11),
+                                    "name": ParsedJSON(location: sloc(12, 2, 11),
                                                        value: .string("taro")),
-                                    "age": ParsedJSON(location: SourceLocation(offset: 29,
-                                                                               line: 3,
-                                                                               columnInByte: 10),
+                                    "age": ParsedJSON(location: sloc(29, 3, 10),
                                                       value: .number("30")),
-                                    "foods": ParsedJSON(location: SourceLocation(offset: 44,
-                                                                                 line: 4,
-                                                                                 columnInByte: 12),
+                                    "foods": ParsedJSON(location: sloc(44, 4, 12),
                                                         value: .array([
-                                                            ParsedJSON(location: SourceLocation(offset: 45,
-                                                                                                line: 4,
-                                                                                                columnInByte: 13),
+                                                            ParsedJSON(location: sloc(45, 4, 13),
                                                                        value: .string("apple")),
-                                                            ParsedJSON(location: SourceLocation(offset: 54,
-                                                                                                line: 4,
-                                                                                                columnInByte: 22),
+                                                            ParsedJSON(location: sloc(54, 4, 22),
                                                                        value: .string("banana"))
                                                             ])),
                         ]))))

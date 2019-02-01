@@ -28,8 +28,8 @@ public class JSONParser {
         }
     }
     
-    public init(data: Data) {
-        self.tokenizer = JSONTokenizer(data: data)
+    public init(data: Data, file: URL? = nil) {
+        self.tokenizer = JSONTokenizer(data: data, file: file)
     }
     
     private let tokenizer: JSONTokenizer
