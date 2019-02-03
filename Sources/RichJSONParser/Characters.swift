@@ -95,5 +95,37 @@ internal extension Unicode.Scalar {
             x == 0x7F ||
             0x80 <= x && x <= 0x9F
     }
+    
+    var surrogatePair: (high: UInt32, low: UInt32)? {
+        let x = self.value
+        guard x > 0xFFFF else {
+            return nil
+        }
+        
+        let high = 0xD800 + (x - 0x10000) >> 10
+        let low = 0xDC00 + (x - 0x10000) & 0x03FF
+        return (high: high, low: low)
+    }
 }
 
+extension UInt32 {
+    var isHighSurrogate: Bool {
+        let x = self
+        
+        return 0xD800 <= x && x <= 0xDBFF
+    }
+    
+    var isLowSurrogate: Bool {
+        let x = self
+        
+        return 0xDC00 <= x && x <= 0xDFFF
+    }
+    
+    static func combineSurrogates(high: UInt32, low: UInt32) -> Unicode.Scalar? {
+        let code = 0x10000 +
+            (high - 0xD800) << 10 +
+            (low - 0xDC00)
+        
+        return Unicode.Scalar(code)
+    }
+}

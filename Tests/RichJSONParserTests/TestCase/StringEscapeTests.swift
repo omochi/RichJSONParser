@@ -20,6 +20,18 @@ class StringEscapeTests: XCTestCase {
         XCTAssertEqual(b, "a\\u3042\\n\\u3044")
     }
     
+    func testEmojiUnescape1() throws {
+        let a = "\\uD83D\\uDE00"
+        let b = try unescape(string: a)
+        XCTAssertEqual(b, "😀")
+    }
+    
+    func testEmojiEscape1() throws {
+        let a = "😀"
+        let b = try escape(string: a)
+        XCTAssertEqual(b, "\\uD83D\\uDE00")
+    }
+    
     func unescape(string: String) throws -> String {
         let data = string.data(using: .utf8)!
         return try JSONStringEscape.unescape(data: data)

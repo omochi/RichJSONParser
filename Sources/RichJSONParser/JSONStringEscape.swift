@@ -95,7 +95,6 @@ public enum JSONStringEscape {
             if c0.codePoint == .doubleQuote {
                 return (data: result, consumedSize: offset - start)
             } else if c0.codePoint == .backSlash {
-                let escapeStart = offset
                 offset += 1
                 guard let c1 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
                     throw Error.unexceptedEnd(offset: offset)
@@ -124,21 +123,40 @@ public enum JSONStringEscape {
                     offset += 1
                     result.appendByte(.tab)
                 } else if c1c == .alphaSU {
-                    offset += 1
-                    var value: UInt32 = 0
-                    for _ in 0..<4 {
-                        guard let c2 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
-                            throw Error.unexceptedEnd(offset: offset)
-                        }
-                        guard c2.codePoint.isHex else {
-                            throw Error.invalidCharacter(offset: offset, c2.codePoint)
-                        }
-                        value = value * 16 + UInt32(c2.codePoint.hexValue!)
-                        offset += 1
+                    offset -= 1
+                    
+                    let hex0 = try decodeUnicodeHex(data: data, start: offset, size: size)
+                    if hex0.code.isLowSurrogate {
+                        throw Error.invalidCodePoint(offset: offset, hex0.code)
                     }
-                    guard let char = Unicode.Scalar(value) else {
-                        throw Error.invalidCodePoint(offset: escapeStart, value)
+              
+                    guard hex0.code.isHighSurrogate else {
+                        guard let char = Unicode.Scalar(hex0.code) else {
+                            throw Error.invalidCodePoint(offset: offset, hex0.code)
+                        }
+                        
+                        offset += hex0.consumedSize
+                        
+                        let utf8 = String(char).data(using: .utf8)!
+                        result.append(utf8)
+                        continue
                     }
+                    
+                    offset += hex0.consumedSize
+                    
+                    let hex1 = try decodeUnicodeHex(data: data, start: offset, size: size)
+                    guard hex1.code.isLowSurrogate else {
+                        throw Error.invalidCodePoint(offset: offset, hex1.code)
+                    }
+                    
+                    guard let char = UInt32.combineSurrogates(high: hex0.code,
+                                                              low: hex1.code) else
+                    {
+                        throw Error.invalidCodePoint(offset: offset, hex1.code)
+                    }
+                    
+                    offset += hex1.consumedSize
+                    
                     let utf8 = String(char).data(using: .utf8)!
                     result.append(utf8)
                 } else {
@@ -151,6 +169,39 @@ public enum JSONStringEscape {
                 offset += c0.length
             }
         }
+    }
+    
+    public static func decodeUnicodeHex(data: UnsafePointer<UInt8>,
+                                        start: Int,
+                                        size: Int)
+        throws -> (code: UInt32, consumedSize: Int)
+    {
+        var offset = start
+        
+        guard let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
+            throw Error.unexceptedEnd(offset: offset) }
+        guard c0.codePoint == .backSlash else {
+            throw Error.invalidCharacter(offset: offset, c0.codePoint) }
+        offset += 1
+    
+        guard let c1 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
+            throw Error.unexceptedEnd(offset: offset) }
+        guard c1.codePoint == .alphaSU else {
+            throw Error.invalidCharacter(offset: offset, c0.codePoint) }
+        offset += 1
+        
+        var code: UInt32 = 0
+        for _ in 0..<4 {
+            guard let c2 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
+                throw Error.unexceptedEnd(offset: offset)
+            }
+            guard c2.codePoint.isHex else {
+                throw Error.invalidCharacter(offset: offset, c2.codePoint)
+            }
+            code = code * 16 + UInt32(c2.codePoint.hexValue!)
+            offset += 1
+        }
+        return (code: code, consumedSize: offset - start)
     }
     
     public static func escape(string: String) -> Data {
@@ -179,9 +230,11 @@ public enum JSONStringEscape {
                 result.append(contentsOf: "\\t".utf8)
             } else if c0c.isASCII && !c0c.isControlCode {
                 result.append(contentsOf: String(c0c).utf8)
+            } else if let pair = c0c.surrogatePair {
+                let str = String(format: "\\u%04X\\u%04X", pair.high, pair.low)
+                result.append(contentsOf: str.utf8)
             } else {
-                let hex = String(format: "%04X", c0c.value)
-                let str = "\\u\(hex)"
+                let str = String(format: "\\u%04X", c0c.value)
                 result.append(contentsOf: str.utf8)
             }
         }
