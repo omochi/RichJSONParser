@@ -1,5 +1,13 @@
 2019/02/04
 
+unescapeの2重処理を統合
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.214, relative standard deviation: 2.078%, values: [0.219774, 0.210736, 0.209329, 0.209696, 0.215742, 0.220639, 0.214793, 0.207895, 0.209853, 0.217489], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 SourceLocationの処理を最適化
 
 Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.224, relative standard deviation: 2.232%, values: [0.226453, 0.226903, 0.232438, 0.223739, 0.221521, 0.219592, 0.219330, 0.218428, 0.217456, 0.230593], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100

@@ -33,35 +33,67 @@ public enum JSONStringEscape {
     }
     
     public static func unescape(data: UnsafePointer<UInt8>, size: Int) throws -> String {
-        let nsStrData = try _unescape(data: data, size: size)
+        let data = try unescapeData(data: data, size: size)
         
-        let strData = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: nsStrData.bytes),
-                           count: nsStrData.length,
-                           deallocator: Data.Deallocator.none)
+        return try decodeUTF8(data: data.bytes.assumingMemoryBound(to: UInt8.self),
+                              size: data.length)
+    }
+    
+    public static func unescapeData(data: UnsafePointer<UInt8>, size: Int)
+        throws -> NSData
+    {
+        var offset = 0
         
-        guard let string = String(data: strData, encoding: .utf8) else {
+        if let c0 = try UTF8Decoder.decodeUTF8(at: 0, from: data, size: size),
+            c0.codePoint == .doubleQuote
+        {
+            offset += 1
+        }
+        
+        let result = try unescapingDecodeData(data: data, start: offset, size: size)
+        
+        return result.data
+    }
+    
+    public static func unescapingDecode(data: UnsafePointer<UInt8>,
+                                        start: Int,
+                                        size: Int)
+        throws -> (string: String, consumedSize: Int)
+    {
+        let data = try unescapingDecodeData(data: data, start: start, size: size)
+        
+        let string = try decodeUTF8(data: data.data.bytes.assumingMemoryBound(to: UInt8.self),
+                                    size: data.data.length)
+        
+        return (string: string, consumedSize: data.consumedSize)
+    }
+    
+    private static func decodeUTF8(data: UnsafePointer<UInt8>, size: Int) throws -> String {
+        let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: data),
+                        count: size,
+                        deallocator: .none)
+        guard let string = String(data: data, encoding: .utf8) else {
             throw Error.utf8DecodeError(offset: nil)
         }
         return string
     }
     
-    public static func _unescape(data: UnsafePointer<UInt8>, size: Int) throws -> NSData {
-        let result = NSMutableData(capacity: size)!
+    public static func unescapingDecodeData(data: UnsafePointer<UInt8>,
+                                            start: Int,
+                                            size: Int)
+        throws -> (data: NSData, consumedSize: Int)
+    {
+        let result = NSMutableData()
         
-        var offset = 0
+        var offset = start
 
-        if let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size),
-            c0.codePoint == .doubleQuote {
-            offset += 1
-        }
-        
         while true {
             guard let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
-                return result
+                return (data: result, consumedSize: offset - start)
             }
             
             if c0.codePoint == .doubleQuote {
-                return result
+                return (data: result, consumedSize: offset - start)
             } else if c0.codePoint == .backSlash {
                 let escapeStart = offset
                 offset += 1

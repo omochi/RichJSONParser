@@ -303,52 +303,34 @@ public class JSONTokenizer {
         }
         location.addColumn(length: 1)
         
-        while true {
-            guard let c1 = try char(at: location) else {
-                throw Error.unexceptedEnd(location)
-            }
+        func unescape() throws -> String {
+            let start = location
             
-            if c1.codePoint == .doubleQuote {
-                location.addColumn(length: 1)
-                
-                return try buildStringToken(start: start)
-            } else if c1.codePoint == .backSlash {
-                location.addColumn(length: 1)
-                guard let c2 = try char(at: location) else {
-                    throw Error.unexceptedEnd(location)
-                }
-                let c2c = c2.codePoint
-                if c2c == .doubleQuote ||
-                    c2c == .backSlash ||
-                    c2c == .slash ||
-                    c2c == .alphaSB ||
-                    c2c == .alphaSF ||
-                    c2c == .alphaSN ||
-                    c2c == .alphaSR ||
-                    c2c == .alphaST
-                {
-                    location.addColumn(length: 1)
-                } else if c2c == .alphaSU {
-                    location.addColumn(length: 1)
-                    
-                    for _ in 0..<4 {
-                        guard let c3 = try char(at: location) else {
-                            throw Error.unexceptedEnd(location)
-                        }
-                        guard c3.codePoint.isHex else {
-                            throw Error.invalidCharacter(location, c3.codePoint)
-                        }
-                        location.addColumn(length: 1)
-                    }
-                } else {
-                    throw Error.invalidCharacter(location, c2c)
-                }
-            } else if c1.codePoint.isControlCode {
-                throw Error.invalidCharacter(location, c1.codePoint)
-            } else {
-                location.addColumn(length: c1.length)
+            do {
+                let result = try JSONStringEscape
+                    .unescapingDecode(data: data,
+                                      start: start.offset,
+                                      size: dataSize)
+                location.addColumn(length: result.consumedSize)
+                return result.string
+            } catch {
+                throw Error.stringUnescapeError(start, error)
             }
         }
+
+        let string = try unescape()
+        
+        guard let c1 = try char(at: location) else {
+            throw Error.unexceptedEnd(location)
+        }
+        guard c1.codePoint == .doubleQuote else {
+            throw Error.invalidCharacter(location, c1.codePoint)
+        }
+        location.addColumn(length: 1)
+        
+        return buildToken(start: start,
+                          kind: .string,
+                          string: string)
     }
     
     private func readKeyword() throws -> JSONToken {
@@ -379,12 +361,7 @@ public class JSONTokenizer {
         let string = try decodeUTF8(start: start, end: location)
         return buildToken(start: start, kind: .number, string: string)
     }
-    
-    private func buildStringToken(start: SourceLocation) throws -> JSONToken {
-        let string = try unescapeString(start: start, end: location)
-        return buildToken(start: start, kind: .string, string: string)
-    }
-    
+
     private func buildToken(start: SourceLocation,
                             kind: JSONToken.Kind,
                             string: String? = nil) -> JSONToken
@@ -395,18 +372,6 @@ public class JSONTokenizer {
                          string: string)
     }
 
-    private func unescapeString(start: SourceLocation,
-                                end: SourceLocation)
-        throws -> String
-    {
-        do {
-            return try JSONStringEscape.unescape(data: data.advanced(by: start.offset),
-                                                 size: end.offset - start.offset)
-        } catch {
-            throw Error.stringUnescapeError(start, error)
-        }
-    }
-    
     private func decodeUTF8(start: SourceLocation,
                             end: SourceLocation)
         throws -> String
