@@ -27,25 +27,28 @@ public enum JSONStringEscape {
     }
     
     public static func unescape(data: Data) throws -> String {
-        let strData = try _unescape(data: data)
-        guard let string = String(data: strData, encoding: .utf8) else {
+        let strData = try _unescape(data: data as NSData)
+        guard let string = String(data: strData as Data, encoding: .utf8) else {
             throw Error.utf8DecodeError(offset: nil)
         }
         return string
     }
     
-    public static func _unescape(data: Data) throws -> Data {
-        var result = Data(capacity: data.count)
+    public static func _unescape(data nsData: NSData) throws -> NSData {
+        let data = nsData.bytes.assumingMemoryBound(to: UInt8.self)
+        let size = nsData.length
+        
+        let result = NSMutableData(capacity: size)!
         
         var offset = 0
 
-        if let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data),
+        if let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size),
             c0.codePoint == .doubleQuote {
             offset += 1
         }
         
         while true {
-            guard let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data) else {
+            guard let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
                 return result
             }
             
@@ -54,37 +57,37 @@ public enum JSONStringEscape {
             } else if c0.codePoint == .backSlash {
                 let escapeStart = offset
                 offset += 1
-                guard let c1 = try UTF8Decoder.decodeUTF8(at: offset, from: data) else {
+                guard let c1 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
                     throw Error.unexceptedEnd(offset: offset)
                 }
             
                 let c1c = c1.codePoint
                 if c1c == .doubleQuote {
                     offset += 1
-                    result.append(.doubleQuote)
+                    result.appendByte(.doubleQuote)
                 } else if c1c == .backSlash {
                     offset += 1
-                    result.append(.backSlash)
+                    result.appendByte(.backSlash)
                 } else if c1c == .alphaSB {
                     offset += 1
-                    result.append(.backSpace)
+                    result.appendByte(.backSpace)
                 } else if c1c == .alphaSF {
                     offset += 1
-                    result.append(.formFeed)
+                    result.appendByte(.formFeed)
                 } else if c1c == .alphaSN {
                     offset += 1
-                    result.append(.lf)
+                    result.appendByte(.lf)
                 } else if c1c == .alphaSR {
                     offset += 1
-                    result.append(.cr)
+                    result.appendByte(.cr)
                 } else if c1c == .alphaST {
                     offset += 1
-                    result.append(.tab)
+                    result.appendByte(.tab)
                 } else if c1c == .alphaSU {
                     offset += 1
                     var value: UInt32 = 0
                     for _ in 0..<4 {
-                        guard let c2 = try UTF8Decoder.decodeUTF8(at: offset, from: data) else {
+                        guard let c2 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
                             throw Error.unexceptedEnd(offset: offset)
                         }
                         guard c2.codePoint.isHex else {
@@ -104,9 +107,7 @@ public enum JSONStringEscape {
             } else if c0.codePoint.isControlCode {
                 throw Error.invalidCharacter(offset: offset, c0.codePoint)
             } else {
-                let start = data.startIndex + offset
-                let end = start + c0.length
-                result.append(data[start..<end])
+                result.append(data.advanced(by: offset), length: c0.length)
                 offset += c0.length
             }
         }
@@ -143,6 +144,14 @@ public enum JSONStringEscape {
                 let str = "\\u\(hex)"
                 result.append(contentsOf: str.utf8)
             }
+        }
+    }
+}
+
+extension NSMutableData {
+    internal func appendByte(_ byte: UInt8) {
+        withUnsafePointer(to: byte) { (p) in
+            self.append(p, length: 1)
         }
     }
 }

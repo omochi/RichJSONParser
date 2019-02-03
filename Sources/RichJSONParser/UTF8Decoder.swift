@@ -74,10 +74,60 @@ internal extension UTF8Decoder {
                 return DecodedUnicodeChar(codePoint: Unicode.Scalar(b0), length: 1)
             case 2, 3, 4:
                 var value: UInt32 = UInt32((b0 << length) >> length)
-                
+
                 for i in 0..<(Int(length) - 1) {
                     let position = start + i + 1
                     guard let b1 = read(position) else {
+                        throw Error.unexceptedEnd(offset: position)
+                    }
+                    switch ByteKind(byte: b1) {
+                    case .head:
+                        throw Error.unexceptedHead(offset: position)
+                    case .body:
+                        value = (value << 6) + UInt32(b1 & 0b0011_1111)
+                    case .invalid:
+                        throw Error.invalidByte(offset: position, b1)
+                    }
+                }
+                guard let codePoint = Unicode.Scalar(value) else {
+                    throw Error.invalidCodePoint(offset: start, value)
+                }
+
+                return DecodedUnicodeChar(codePoint: codePoint, length: Int(length))
+            default:
+                throw Error.invalidLength(offset: start, length)
+            }
+        case .body:
+            throw Error.unexceptedBody(offset: start)
+        case .invalid:
+            throw Error.invalidByte(offset: start, b0)
+        }
+    }
+    
+    static func decodeUTF8(at start: Int, from data: UnsafePointer<UInt8>, size: Int) throws -> DecodedUnicodeChar? {
+        func read(offset: Int) -> UInt8? {
+            guard offset < size else {
+                return nil
+            }
+            
+            return data.advanced(by: offset).pointee
+        }
+        
+        guard let b0 = read(offset: start) else {
+            return nil
+        }
+        
+        switch ByteKind(byte: b0) {
+        case .head(length: let length):
+            switch length {
+            case 1:
+                return DecodedUnicodeChar(codePoint: Unicode.Scalar(b0), length: 1)
+            case 2, 3, 4:
+                var value: UInt32 = UInt32((b0 << length) >> length)
+                
+                for i in 0..<(Int(length) - 1) {
+                    let position = start + i + 1
+                    guard let b1 = read(offset: position) else {
                         throw Error.unexceptedEnd(offset: position)
                     }
                     switch ByteKind(byte: b1) {

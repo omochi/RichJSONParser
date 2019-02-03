@@ -1,5 +1,13 @@
 2019/02/04
 
+UnsafePointer速い
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.386, relative standard deviation: 1.622%, values: [0.389607, 0.397869, 0.382895, 0.380713, 0.385820, 0.392802, 0.378998, 0.391943, 0.378242, 0.382774], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 Releaseビルドにするの忘れてたｗ
 タスク量をx10
 
