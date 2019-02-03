@@ -7,149 +7,239 @@ internal let falseKeyword = "false"
 
 public class JSONParser {
     public enum Error : LocalizedError, CustomStringConvertible {
-        case unexceptedEnd(SourceLocation)
         case invalidToken(JSONToken)
         case unexceptedToken(JSONToken, expected: String)
-        case keyNotString(SourceLocation)
         
         public var errorDescription: String? { return description }
         
         public var description: String {
             switch self {
-            case .unexceptedEnd(let loc):
-                return "unexcepted end at \(loc)"
             case .invalidToken(let token):
                 return "invalid token (\(token))"
             case .unexceptedToken(let token, let exp):
                 return "unexcepted token (\(token)), expected (\(exp))"
-            case .keyNotString(let loc):
-                return "object key is not string at \(loc)"
             }
         }
+    }
+    
+    private enum State {
+        case start
+        case complete(ParsedJSON)
+        case array(Array)
+        case object(Object)
+        
+        struct Array {
+            var array: [ParsedJSON]
+            var location: SourceLocation
+        }
+        
+        struct Object {
+            var object: OrderedDictionary<String, ParsedJSON>
+            var location: SourceLocation
+            var key: String?
+        }
+    }
+    
+    private struct Token {
+        enum Value {
+            case end
+            case keyword(ParsedJSON)
+            case number(ParsedJSON)
+            case string(ParsedJSON)
+            case leftBracket
+            case rightBracket
+            case leftBrace
+            case rightBrace
+        }
+        
+        var value: Value
+        var token: JSONToken
     }
     
     public init(data: Data, file: URL? = nil) {
         self.tokenizer = JSONTokenizer(data: data, file: file)
+        self.stack = [State.start]
     }
     
     private let tokenizer: JSONTokenizer
+    private var stack: [State]
+    private var state: State {
+        get { return stack[stack.count - 1] }
+        set { stack[stack.count - 1] = newValue }
+    }
     
     public func parse() throws -> ParsedJSON {
-        return try parseValue()
+        while true {
+            switch state {
+            case .complete(let x):
+                return x
+            case .start:
+                try processStart()
+            case .array(let state):
+                try processArray(state)
+            case .object(let state):
+                try processObject(state)
+            }
+        }
     }
     
-    public func parseValue() throws -> ParsedJSON {
-        let start = tokenizer.location
-        let token = try tokenizer.read()
-        
-        switch token.kind {
-        case .end:
-            throw Error.unexceptedEnd(token.location)
-        case .keyword:
-            let string = token.string!
-            if string == nullKeyword {
-                return ParsedJSON(location: token.location, value: .null)
-            } else if string == falseKeyword {
-                return ParsedJSON(location: token.location, value: .boolean(false))
-            } else if string == trueKeyword {
-                return ParsedJSON(location: token.location, value: .boolean(true))
-            } else {
-                throw Error.invalidToken(token)
-            }
-        case .number:
-            let string = token.string!
-            return ParsedJSON(location: token.location, value: .number(string))
-        case .string:
-            let string = token.string!
-            return ParsedJSON(location: token.location, value: .string(string))
+    private func processStart() throws {
+        let token = try readToken()
+        switch token.value {
+        case .keyword(let x),
+             .number(let x),
+             .string(let x):
+            state = .complete(x)
         case .leftBracket:
-            tokenizer.location = start
-            return try parseArray()
+            state = .array(State.Array(array: [], location: token.token.location))
         case .leftBrace:
-            tokenizer.location = start
-            return try parseObject()
+            state = .object(State.Object(object: OrderedDictionary(),
+                                         location: token.token.location,
+                                         key: nil))
+        default: throw Error.invalidToken(token.token)
+        }
+    }
+        
+    private func processArray(_ state: State.Array) throws {
+        let token = try readToken()
+        switch token.value {
+        case .keyword(let x),
+             .number(let x),
+             .string(let x):
+            try addArrayItem(state: state, value: x)
+        case .leftBracket:
+            stack.append(.array(State.Array(array: [], location: token.token.location)))
+        case .leftBrace:
+            stack.append(.object(State.Object(object: OrderedDictionary(),
+                                              location: token.token.location,
+                                              key: nil)))
+        case .rightBracket:
+            try emitValue(ParsedJSON(location: state.location,
+                                     value: .array(state.array)))
+        default: throw Error.invalidToken(token.token)
+        }
+    }
+
+    private func processObject(_ state: State.Object) throws {
+        var state = state
+        
+        let keyToken = try tokenizer.read()
+        switch keyToken.kind {
+        case .string:
+            state.key = keyToken.string!
+            self.state = .object(state)
+        case .rightBrace:
+            try emitValue(ParsedJSON(location: state.location,
+                                     value: .object(state.object)))
+            return
+        default: throw Error.unexceptedToken(keyToken, expected: "key string")
+        }
+        
+        try consumeColon()
+        
+        let token = try readToken()
+        switch token.value {
+        case .keyword(let x),
+             .number(let x),
+             .string(let x):
+            try addObjectItem(state: state, value: x)
+        case .leftBracket:
+            stack.append(.array(State.Array(array: [], location: token.token.location)))
+        case .leftBrace:
+            stack.append(.object(State.Object(object: OrderedDictionary(),
+                                              location: token.token.location,
+                                              key: nil)))
+        default: throw Error.invalidToken(token.token)
+        }
+    }
+    
+    private func emitValue(_ value: ParsedJSON) throws {
+        if stack.count == 1 {
+            state = .complete(value)
+            return
+        }
+        
+        stack.removeLast()
+        
+        switch state {
+        case .array(let state):
+            try addArrayItem(state: state, value: value)
+        case .object(let state):
+            try addObjectItem(state: state, value: value)
+        default: fatalError("invalid state")
+        }
+    }
+    
+    private func addArrayItem(state: State.Array,
+                              value: ParsedJSON) throws
+    {
+        var state = state
+        state.array.append(value)
+        self.state = .array(state)
+        
+        try mayConsumeComma()
+    }
+    
+    private func addObjectItem(state: State.Object,
+                               value: ParsedJSON) throws
+    {
+        var state = state
+        let key = state.key!
+        state.object[key] = value
+        self.state = .object(state)
+        
+        try mayConsumeComma()
+    }
+    
+    private func mayConsumeComma() throws {
+        let location = tokenizer.location
+        let token = try tokenizer.read()
+        switch token.kind {
+        case .comma, .end: break
         default:
+            tokenizer.location = location
+        }
+    }
+    
+    private func consumeColon() throws {
+        let token = try tokenizer.read()
+        switch token.kind {
+        case .colon: break
+        default:
+            throw Error.unexceptedToken(token, expected: "colon")
+        }
+    }
+    
+    private func readToken() throws -> Token {
+        let token = try tokenizer.read()
+        switch token.kind {
+        case .keyword:
+            let value = try parseKeyword(token: token)
+            return Token(value: .keyword(value), token: token)
+        case .number:
+            let value = ParsedJSON(location: token.location, value: .number(token.string!))
+            return Token(value: .number(value), token: token)
+        case .string:
+            let value = ParsedJSON(location: token.location, value: .string(token.string!))
+            return Token(value: .string(value), token: token)
+        case .leftBracket: return Token(value: .leftBracket, token: token)
+        case .rightBracket: return Token(value: .rightBracket, token: token)
+        case .leftBrace: return Token(value: .leftBrace, token: token)
+        case .rightBrace: return Token(value: .rightBrace, token: token)
+        default: throw Error.invalidToken(token)
+        }
+    }
+    
+    private func parseKeyword(token: JSONToken) throws -> ParsedJSON {
+        let string = token.string!
+        if string == nullKeyword {
+            return ParsedJSON(location: token.location, value: .null)
+        } else if string == falseKeyword {
+            return ParsedJSON(location: token.location, value: .boolean(false))
+        } else if string == trueKeyword {
+            return ParsedJSON(location: token.location, value: .boolean(true))
+        } else {
             throw Error.invalidToken(token)
         }
-    }
-    
-    public func parseArray() throws -> ParsedJSON {
-        var result = [ParsedJSON]()
-        
-        let t0 = try tokenizer.read()
-        guard t0.kind == .leftBracket else {
-            throw Error.unexceptedToken(t0, expected: "[")
-        }
-        
-        while true {
-            let loc = tokenizer.location
-            let t1 = try tokenizer.read()
-            if t1.kind == .rightBracket {
-                break
-            }
-            tokenizer.location = loc
-
-            let e = try parseValue()
-            result.append(e)
-            
-            let t2 = try tokenizer.read()
-            
-            if t2.kind == .comma {
-                continue
-            } else if t2.kind == .rightBracket {
-                break
-            } else {
-                throw Error.unexceptedToken(t0, expected: ", or ]")
-            }
-        }
-        
-        return ParsedJSON(location: t0.location,
-                          value: .array(result))
-    }
-    
-    public func parseObject() throws -> ParsedJSON {
-        var result = OrderedDictionary<String, ParsedJSON>()
-        
-        let t0 = try tokenizer.read()
-        guard t0.kind == .leftBrace else {
-            throw Error.unexceptedToken(t0, expected: "{")
-        }
-        
-        while true {
-            let loc = tokenizer.location
-            let t1 = try tokenizer.read()
-            if t1.kind == .rightBrace {
-                break
-            }
-            tokenizer.location = loc
-            
-            let k = try parseValue()
-            
-            guard case .string(let keyString) = k.value else {
-                throw Error.keyNotString(k.location)
-            }
-            
-            let t2 = try tokenizer.read()
-            if t2.kind == .colon {
-                //
-            } else {
-                throw Error.unexceptedToken(t2, expected: ":")
-            }
-            
-            let v = try parseValue()
-            result[keyString] = v
-            
-            let t3 = try tokenizer.read()
-            if t3.kind == .comma {
-                continue
-            } else if t3.kind == .rightBrace {
-                break
-            } else {
-                throw Error.unexceptedToken(t3, expected: ", or }")
-            }
-        }
-        
-        return ParsedJSON(location: t0.location,
-                          value: .object(result))
     }
 }

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D6100EBB22071C6F00CD4974 /* Resources.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EBA22071C6F00CD4974 /* Resources.swift */; };
+		D6100EBD22071CB000CD4974 /* BenchmarkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */; };
+		D6100EBF22071D3300CD4974 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = D6100EBE22071D3300CD4974 /* Resources */; };
 		D639340821F015D8001DFC2A /* OrderedDictionary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D639340721F015D8001DFC2A /* OrderedDictionary.framework */; };
 		D639342421F03FE7001DFC2A /* RichJSONParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D63933F421F0119D001DFC2A /* RichJSONParser.framework */; };
 		D6FB036321F5C7F7002CDE0A /* JSONStringEscape.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FB035721F5C7F7002CDE0A /* JSONStringEscape.swift */; };
@@ -38,6 +41,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D6100EBA22071C6F00CD4974 /* Resources.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Resources.swift; sourceTree = "<group>"; };
+		D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkTests.swift; sourceTree = "<group>"; };
+		D6100EBE22071D3300CD4974 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		D63933F421F0119D001DFC2A /* RichJSONParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RichJSONParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D63933F821F0119D001DFC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D639340721F015D8001DFC2A /* OrderedDictionary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OrderedDictionary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -81,6 +87,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D6100EB822071C4500CD4974 /* TestCase */ = {
+			isa = PBXGroup;
+			children = (
+				D6FB037021F5C80E002CDE0A /* ParserTests.swift */,
+				D6FB037221F5C80E002CDE0A /* SerializerTests.swift */,
+				D6FB036F21F5C80E002CDE0A /* StringEscapeTests.swift */,
+				D6FB037121F5C80E002CDE0A /* TokenizerTests.swift */,
+				D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */,
+			);
+			path = TestCase;
+			sourceTree = "<group>";
+		};
+		D6100EB922071C5400CD4974 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				D6100EBA22071C6F00CD4974 /* Resources.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
 		D63933EA21F0119D001DFC2A = {
 			isa = PBXGroup;
 			children = (
@@ -149,10 +175,9 @@
 		D639344221F04032001DFC2A /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				D6FB037021F5C80E002CDE0A /* ParserTests.swift */,
-				D6FB037221F5C80E002CDE0A /* SerializerTests.swift */,
-				D6FB036F21F5C80E002CDE0A /* StringEscapeTests.swift */,
-				D6FB037121F5C80E002CDE0A /* TokenizerTests.swift */,
+				D6100EBE22071D3300CD4974 /* Resources */,
+				D6100EB922071C5400CD4974 /* Support */,
+				D6100EB822071C4500CD4974 /* TestCase */,
 			);
 			name = Sources;
 			path = ../../Tests/RichJSONParserTests;
@@ -257,6 +282,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D6100EBF22071D3300CD4974 /* Resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,6 +315,8 @@
 				D6FB037521F5C80E002CDE0A /* TokenizerTests.swift in Sources */,
 				D6FB037621F5C80E002CDE0A /* SerializerTests.swift in Sources */,
 				D6FB037421F5C80E002CDE0A /* ParserTests.swift in Sources */,
+				D6100EBD22071CB000CD4974 /* BenchmarkTests.swift in Sources */,
+				D6100EBB22071C6F00CD4974 /* Resources.swift in Sources */,
 				D6FB037321F5C80E002CDE0A /* StringEscapeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

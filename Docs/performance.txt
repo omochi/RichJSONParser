@@ -1,0 +1,14 @@
+2019/02/04
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.099, relative standard deviation: 1.915%, values: [0.103518, 0.098315, 0.100118, 0.101772, 0.097021, 0.099407, 0.098273, 0.097743, 0.098773, 0.098018], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+再帰をやめたら少し速くなった
+
+---
+
+2019/02/03
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.139, relative standard deviation: 2.177%, values: [0.143542, 0.137629, 0.137340, 0.138544, 0.144941, 0.136468, 0.139065, 0.136802, 0.135280, 0.136396], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+NSJSONSerializationより100倍以上遅くて草
+
