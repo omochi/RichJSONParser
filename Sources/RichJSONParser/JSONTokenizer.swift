@@ -27,21 +27,22 @@ public class JSONTokenizer {
         }
     }
     
-    private let data: Data
+    private let _data: NSData
+    private let data: UnsafePointer<UInt8>
     public var location: SourceLocation
     
+    private var dataSize: Int {
+        return _data.length
+    }
+    
     public init(data: Data, file: URL? = nil) {
-        self.data = Data(data) // drop subData
+        self._data = NSData(data: data) // drop subData
         self.location = SourceLocation(offset: 0,
                                        line: 1,
                                        columnInByte: 1,
                                        file: file)
-    }
-    
-    public func data(of token: JSONToken) -> Data {
-        let start = token.location.offset
-        let end = start + token.length
-        return self.data[start..<end]
+        
+        self.data = _data.bytes.assumingMemoryBound(to: UInt8.self)
     }
     
     public func read() throws -> JSONToken {
@@ -366,8 +367,7 @@ public class JSONTokenizer {
             {
                 location.addColumn(length: 1)
             } else {
-                let data = currentTokenData(start: start)
-                let string = try decodeUTF8(data: data, location: start)
+                let string = try decodeUTF8(start: start, end: location)
                 return buildToken(start: start,
                                   kind: .keyword,
                                   string: string)
@@ -376,14 +376,12 @@ public class JSONTokenizer {
     }
     
     private func buildNumberToken(start: SourceLocation) throws -> JSONToken {
-        let data = currentTokenData(start: start)
-        let string = try decodeUTF8(data: data, location: start)
+        let string = try decodeUTF8(start: start, end: location)
         return buildToken(start: start, kind: .number, string: string)
     }
     
     private func buildStringToken(start: SourceLocation) throws -> JSONToken {
-        let data = currentTokenData(start: start)
-        let string = try unescapeString(data: data, location: start)
+        let string = try unescapeString(start: start, end: location)
         return buildToken(start: start, kind: .string, string: string)
     }
     
@@ -396,31 +394,45 @@ public class JSONTokenizer {
                          kind: kind,
                          string: string)
     }
-    
-    private func currentTokenData(start: SourceLocation) -> Data {
-        let s = start.offset
-        let e = location.offset
-        return data[s..<e]
-    }
-    
-    private func unescapeString(data: Data, location: SourceLocation) throws -> String {
+
+    private func unescapeString(start: SourceLocation,
+                                end: SourceLocation)
+        throws -> String
+    {
         do {
-            return try JSONStringEscape.unescape(data: data)
+            return try JSONStringEscape.unescape(data: data.advanced(by: start.offset),
+                                                 size: end.offset - start.offset)
         } catch {
-            throw Error.stringUnescapeError(location, error)
+            throw Error.stringUnescapeError(start, error)
         }
     }
     
-    private func decodeUTF8(data: Data, location: SourceLocation) throws -> String {
+    private func decodeUTF8(start: SourceLocation,
+                            end: SourceLocation)
+        throws -> String
+    {
+        let offset = start.offset
+        let length = end.offset - offset
+        
+        guard offset + length <= dataSize else {
+            fatalError("out of range")
+        }
+        
+        let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: self.data.advanced(by: offset)),
+                        count: length,
+                        deallocator: .none)
+        
         guard let str = String(data: data, encoding: .utf8) else {
-            throw Error.utf8DecodeError(location, nil)
+            throw Error.utf8DecodeError(start, nil)
         }
         return str
     }
     
     private func char(at location: SourceLocation) throws -> DecodedUnicodeChar? {
         do {
-            return try UTF8Decoder.decodeUTF8(at: location.offset, from: data)
+            return try UTF8Decoder.decodeUTF8(at: location.offset,
+                                              from: data,
+                                              size: dataSize)
         } catch {
             throw Error.utf8DecodeError(location, error)
         }

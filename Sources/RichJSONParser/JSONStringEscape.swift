@@ -27,17 +27,25 @@ public enum JSONStringEscape {
     }
     
     public static func unescape(data: Data) throws -> String {
-        let strData = try _unescape(data: data as NSData)
-        guard let string = String(data: strData as Data, encoding: .utf8) else {
+        return try data.withUnsafeBytes { (p) in
+            try unescape(data: p, size: data.count)
+        }
+    }
+    
+    public static func unescape(data: UnsafePointer<UInt8>, size: Int) throws -> String {
+        let nsStrData = try _unescape(data: data, size: size)
+        
+        let strData = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: nsStrData.bytes),
+                           count: nsStrData.length,
+                           deallocator: Data.Deallocator.none)
+        
+        guard let string = String(data: strData, encoding: .utf8) else {
             throw Error.utf8DecodeError(offset: nil)
         }
         return string
     }
     
-    public static func _unescape(data nsData: NSData) throws -> NSData {
-        let data = nsData.bytes.assumingMemoryBound(to: UInt8.self)
-        let size = nsData.length
-        
+    public static func _unescape(data: UnsafePointer<UInt8>, size: Int) throws -> NSData {
         let result = NSMutableData(capacity: size)!
         
         var offset = 0

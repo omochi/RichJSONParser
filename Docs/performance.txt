@@ -1,5 +1,21 @@
 2019/02/04
 
+Tokenizerをpointer化
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.329, relative standard deviation: 1.718%, values: [0.334085, 0.328008, 0.334753, 0.334137, 0.330010, 0.332509, 0.319483, 0.319534, 0.330054, 0.322683], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
+Bridgeでの Diffensive copyを回避
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.376, relative standard deviation: 1.920%, values: [0.384483, 0.385081, 0.376610, 0.376827, 0.379194, 0.371420, 0.378696, 0.365344, 0.362962, 0.382752], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 UnsafePointer速い
 
 Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.386, relative standard deviation: 1.622%, values: [0.389607, 0.397869, 0.382895, 0.380713, 0.385820, 0.392802, 0.378998, 0.391943, 0.378242, 0.382774], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
