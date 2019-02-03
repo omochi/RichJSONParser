@@ -1,5 +1,18 @@
 2019/02/04
 
+Releaseビルドにするの忘れてたｗ
+タスク量をx10
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.441, relative standard deviation: 0.911%, values: [0.446138, 0.438155, 0.446337, 0.439378, 0.440080, 0.434820, 0.444792, 0.435848, 0.442505, 0.437045], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+Foundationの63倍
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParseFoundationX100]' measured [Time, seconds] average: 0.007, relative standard deviation: 4.976%, values: [0.008081, 0.007895, 0.007200, 0.007127, 0.007005, 0.007588, 0.007238, 0.006990, 0.007150, 0.007080], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 文字列のunescapeをDataで構築した
 
 Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.091, relative standard deviation: 2.364%, values: [0.093790, 0.088980, 0.088831, 0.089687, 0.089910, 0.091554, 0.094236, 0.090027, 0.089878, 0.094776], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
