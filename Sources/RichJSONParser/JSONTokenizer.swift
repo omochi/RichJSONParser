@@ -30,6 +30,7 @@ public class JSONTokenizer {
     private let _data: NSData
     private let data: UnsafePointer<UInt8>
     public var location: SourceLocation
+    private let unescapingBuffer: StaticBuffer
     
     private var dataSize: Int {
         return _data.length
@@ -43,6 +44,8 @@ public class JSONTokenizer {
                                        file: file)
         
         self.data = _data.bytes.assumingMemoryBound(to: UInt8.self)
+        
+        self.unescapingBuffer = StaticBuffer(capacity: _data.length)
     }
     
     public func read() throws -> JSONToken {
@@ -310,7 +313,8 @@ public class JSONTokenizer {
                 let result = try JSONStringEscape
                     .unescapingDecode(data: data,
                                       start: start.offset,
-                                      size: dataSize)
+                                      size: dataSize,
+                                      buffer: unescapingBuffer)
                 location.addColumn(length: result.consumedSize)
                 return result.string
             } catch {

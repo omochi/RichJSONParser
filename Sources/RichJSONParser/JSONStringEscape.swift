@@ -34,9 +34,10 @@ public enum JSONStringEscape {
     
     public static func unescape(data: UnsafePointer<UInt8>, size: Int) throws -> String {
         let data = try unescapeData(data: data, size: size)
-        
-        return try decodeUTF8(data: data.bytes.assumingMemoryBound(to: UInt8.self),
-                              size: data.length)
+        guard let string = String(data: data as Data, encoding: .utf8) else {
+            throw Error.utf8DecodeError(offset: nil)
+        }
+        return string
     }
     
     public static func unescapeData(data: UnsafePointer<UInt8>, size: Int)
@@ -50,50 +51,51 @@ public enum JSONStringEscape {
             offset += 1
         }
         
-        let result = try unescapingDecodeData(data: data, start: offset, size: size)
-        
-        return result.data
+        let buffer = StaticBuffer(capacity: 0)
+        let result = try unescapingDecodeData(data: data, start: offset, size: size,
+                                              buffer: buffer)
+        // drop null
+        return NSData(bytes: result.data,
+                      length: result.dataSize - 1)
     }
     
     public static func unescapingDecode(data: UnsafePointer<UInt8>,
                                         start: Int,
-                                        size: Int)
+                                        size: Int,
+                                        buffer: StaticBuffer)
         throws -> (string: String, consumedSize: Int)
     {
-        let data = try unescapingDecodeData(data: data, start: start, size: size)
-        
-        let string = try decodeUTF8(data: data.data.bytes.assumingMemoryBound(to: UInt8.self),
-                                    size: data.data.length)
-        
+        let data = try unescapingDecodeData(data: data, start: start, size: size,
+                                            buffer: buffer)
+        let string = String(cString: data.data)
         return (string: string, consumedSize: data.consumedSize)
     }
-    
-    private static func decodeUTF8(data: UnsafePointer<UInt8>, size: Int) throws -> String {
-        let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: data),
-                        count: size,
-                        deallocator: .none)
-        guard let string = String(data: data, encoding: .utf8) else {
-            throw Error.utf8DecodeError(offset: nil)
-        }
-        return string
-    }
-    
+
+    // null terminated
+    // dataSize includes null byte
     public static func unescapingDecodeData(data: UnsafePointer<UInt8>,
                                             start: Int,
-                                            size: Int)
-        throws -> (data: NSData, consumedSize: Int)
+                                            size: Int,
+                                            buffer: StaticBuffer)
+        throws -> (data: UnsafePointer<UInt8>, dataSize: Int, consumedSize: Int)
     {
-        let result = NSMutableData()
+        let resultStart = buffer.current
+        var resultSize = 0
         
-        var offset = start
-
+        func write(_ byte: UInt8) {
+            buffer.write(byte: byte)
+            resultSize += 1
+        }
+        
+        var offset: Int = start
+        
         while true {
             guard let c0 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
-                return (data: result, consumedSize: offset - start)
+                break
             }
             
             if c0.codePoint == .doubleQuote {
-                return (data: result, consumedSize: offset - start)
+                break
             } else if c0.codePoint == .backSlash {
                 offset += 1
                 guard let c1 = try UTF8Decoder.decodeUTF8(at: offset, from: data, size: size) else {
@@ -103,25 +105,25 @@ public enum JSONStringEscape {
                 let c1c = c1.codePoint
                 if c1c == .doubleQuote {
                     offset += 1
-                    result.appendByte(.doubleQuote)
+                    write(.doubleQuote)
                 } else if c1c == .backSlash {
                     offset += 1
-                    result.appendByte(.backSlash)
+                    write(.backSlash)
                 } else if c1c == .alphaSB {
                     offset += 1
-                    result.appendByte(.backSpace)
+                    write(.backSpace)
                 } else if c1c == .alphaSF {
                     offset += 1
-                    result.appendByte(.formFeed)
+                    write(.formFeed)
                 } else if c1c == .alphaSN {
                     offset += 1
-                    result.appendByte(.lf)
+                    write(.lf)
                 } else if c1c == .alphaSR {
                     offset += 1
-                    result.appendByte(.cr)
+                    write(.cr)
                 } else if c1c == .alphaST {
                     offset += 1
-                    result.appendByte(.tab)
+                    write(.tab)
                 } else if c1c == .alphaSU {
                     offset -= 1
                     
@@ -138,7 +140,9 @@ public enum JSONStringEscape {
                         offset += hex0.consumedSize
                         
                         let utf8 = String(char).data(using: .utf8)!
-                        result.append(utf8)
+                        for byte in utf8 {
+                            write(byte)
+                        }
                         continue
                     }
                     
@@ -158,17 +162,28 @@ public enum JSONStringEscape {
                     offset += hex1.consumedSize
                     
                     let utf8 = String(char).data(using: .utf8)!
-                    result.append(utf8)
+                    for byte in utf8 {
+                        write(byte)
+                    }
                 } else {
                     throw Error.invalidCharacter(offset: offset, c1c)
                 }
             } else if c0.codePoint.isControlCode {
                 throw Error.invalidCharacter(offset: offset, c0.codePoint)
             } else {
-                result.append(data.advanced(by: offset), length: c0.length)
-                offset += c0.length
+                for _ in 0..<c0.length {
+                    write(data.advanced(by: offset).pointee)
+                    offset += 1
+                }
             }
         }
+        
+        // null
+        write(0)
+        
+        return (data: UnsafePointer(buffer.memory.advanced(by: resultStart)),
+                dataSize: resultSize,
+                consumedSize: offset - start)
     }
     
     public static func decodeUnicodeHex(data: UnsafePointer<UInt8>,

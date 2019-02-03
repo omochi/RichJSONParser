@@ -10,7 +10,7 @@
 		D6100EBB22071C6F00CD4974 /* Resources.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EBA22071C6F00CD4974 /* Resources.swift */; };
 		D6100EBD22071CB000CD4974 /* BenchmarkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */; };
 		D6100EBF22071D3300CD4974 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = D6100EBE22071D3300CD4974 /* Resources */; };
-		D6100EC3220789A600CD4974 /* StaticAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EC2220789A600CD4974 /* StaticAllocator.swift */; };
+		D6100EC3220789A600CD4974 /* StaticBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EC2220789A600CD4974 /* StaticBuffer.swift */; };
 		D639340821F015D8001DFC2A /* OrderedDictionary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D639340721F015D8001DFC2A /* OrderedDictionary.framework */; };
 		D639342421F03FE7001DFC2A /* RichJSONParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D63933F421F0119D001DFC2A /* RichJSONParser.framework */; };
 		D6FB036321F5C7F7002CDE0A /* JSONStringEscape.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FB035721F5C7F7002CDE0A /* JSONStringEscape.swift */; };
@@ -45,7 +45,7 @@
 		D6100EBA22071C6F00CD4974 /* Resources.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Resources.swift; sourceTree = "<group>"; };
 		D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkTests.swift; sourceTree = "<group>"; };
 		D6100EBE22071D3300CD4974 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
-		D6100EC2220789A600CD4974 /* StaticAllocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticAllocator.swift; sourceTree = "<group>"; };
+		D6100EC2220789A600CD4974 /* StaticBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticBuffer.swift; sourceTree = "<group>"; };
 		D63933F421F0119D001DFC2A /* RichJSONParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RichJSONParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D63933F821F0119D001DFC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D639340721F015D8001DFC2A /* OrderedDictionary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OrderedDictionary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -152,7 +152,7 @@
 				D6FB035C21F5C7F7002CDE0A /* ParsedJSON.swift */,
 				D6FB035B21F5C7F7002CDE0A /* SourceLocation.swift */,
 				D6FB035E21F5C7F7002CDE0A /* UTF8Decoder.swift */,
-				D6100EC2220789A600CD4974 /* StaticAllocator.swift */,
+				D6100EC2220789A600CD4974 /* StaticBuffer.swift */,
 			);
 			name = Sources;
 			path = ../../Sources/RichJSONParser;
@@ -296,7 +296,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D6100EC3220789A600CD4974 /* StaticAllocator.swift in Sources */,
+				D6100EC3220789A600CD4974 /* StaticBuffer.swift in Sources */,
 				D6FB036821F5C7F7002CDE0A /* ParsedJSON.swift in Sources */,
 				D6FB036A21F5C7F7002CDE0A /* UTF8Decoder.swift in Sources */,
 				D6FB036D21F5C7F7002CDE0A /* DecodedUnicodeChar.swift in Sources */,

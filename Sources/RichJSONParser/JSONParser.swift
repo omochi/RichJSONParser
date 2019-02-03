@@ -28,15 +28,25 @@ public class JSONParser {
         case array(Array)
         case object(Object)
         
-        struct Array {
+        final class Array {
             var array: [ParsedJSON]
             var location: SourceLocation
+            
+            init(location: SourceLocation) {
+                self.array = []
+                self.location = location
+            }
         }
         
-        struct Object {
+        final class Object {
             var object: OrderedDictionary<String, ParsedJSON>
             var location: SourceLocation
             var key: String?
+            
+            init(location: SourceLocation) {
+                self.object = OrderedDictionary()
+                self.location = location
+            }
         }
     }
     
@@ -89,13 +99,11 @@ public class JSONParser {
         case .keyword(let x),
              .number(let x),
              .string(let x):
-            state = .complete(x)
+            self.state = .complete(x)
         case .leftBracket:
-            state = .array(State.Array(array: [], location: token.token.location))
+            self.state = .array(State.Array(location: token.token.location))
         case .leftBrace:
-            state = .object(State.Object(object: OrderedDictionary(),
-                                         location: token.token.location,
-                                         key: nil))
+            self.state = .object(State.Object(location: token.token.location))
         default: throw Error.invalidToken(token.token)
         }
     }
@@ -108,11 +116,9 @@ public class JSONParser {
              .string(let x):
             try addArrayItem(state: state, value: x)
         case .leftBracket:
-            stack.append(.array(State.Array(array: [], location: token.token.location)))
+            stack.append(.array(State.Array(location: token.token.location)))
         case .leftBrace:
-            stack.append(.object(State.Object(object: OrderedDictionary(),
-                                              location: token.token.location,
-                                              key: nil)))
+            stack.append(.object(State.Object(location: token.token.location)))
         case .rightBracket:
             try emitValue(ParsedJSON(location: state.location,
                                      value: .array(state.array)))
@@ -121,13 +127,10 @@ public class JSONParser {
     }
 
     private func processObject(_ state: State.Object) throws {
-        var state = state
-        
         let keyToken = try tokenizer.read()
         switch keyToken.kind {
         case .string:
             state.key = keyToken.string!
-            self.state = .object(state)
         case .rightBrace:
             try emitValue(ParsedJSON(location: state.location,
                                      value: .object(state.object)))
@@ -144,18 +147,16 @@ public class JSONParser {
              .string(let x):
             try addObjectItem(state: state, value: x)
         case .leftBracket:
-            stack.append(.array(State.Array(array: [], location: token.token.location)))
+            stack.append(.array(State.Array(location: token.token.location)))
         case .leftBrace:
-            stack.append(.object(State.Object(object: OrderedDictionary(),
-                                              location: token.token.location,
-                                              key: nil)))
+            stack.append(.object(State.Object(location: token.token.location)))
         default: throw Error.invalidToken(token.token)
         }
     }
     
     private func emitValue(_ value: ParsedJSON) throws {
         if stack.count == 1 {
-            state = .complete(value)
+            self.state = .complete(value)
             return
         }
         
@@ -173,20 +174,16 @@ public class JSONParser {
     private func addArrayItem(state: State.Array,
                               value: ParsedJSON) throws
     {
-        var state = state
         state.array.append(value)
-        self.state = .array(state)
-        
+
         try mayConsumeComma()
     }
     
     private func addObjectItem(state: State.Object,
                                value: ParsedJSON) throws
     {
-        var state = state
         let key = state.key!
         state.object[key] = value
-        self.state = .object(state)
         
         try mayConsumeComma()
     }

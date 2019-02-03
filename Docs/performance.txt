@@ -1,5 +1,35 @@
 2019/02/04
 
+パーサでのコピーを回避
+タスク量をx100
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.953, relative standard deviation: 0.292%, values: [0.957993, 0.954295, 0.953498, 0.953176, 0.955606, 0.952642, 0.949210, 0.951425, 0.947844, 0.952092], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+Foundationの11倍
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParseFoundationX100]' measured [Time, seconds] average: 0.080, relative standard deviation: 4.345%, values: [0.087327, 0.082365, 0.082406, 0.082084, 0.080373, 0.079119, 0.078610, 0.077660, 0.076856, 0.074201], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+Test Case '-[RichJSONParserTests.BenchmarkTests testParseFoundationX100]' passed (1.162 seconds).
+
+---
+
+2019/02/04
+
+Swift.Dataの生成を回避
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.148, relative standard deviation: 1.904%, values: [0.149182, 0.144987, 0.145416, 0.149457, 0.153824, 0.146574, 0.145075, 0.145766, 0.145010, 0.149876], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
+unescapeのメモリ確保を事前確保
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.176, relative standard deviation: 1.343%, values: [0.177203, 0.172290, 0.175513, 0.177943, 0.178548, 0.173908, 0.175026, 0.172681, 0.176432, 0.179692], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 unescapeの2重処理を統合
 
 Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.214, relative standard deviation: 2.078%, values: [0.219774, 0.210736, 0.209329, 0.209696, 0.215742, 0.220639, 0.214793, 0.207895, 0.209853, 0.217489], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
