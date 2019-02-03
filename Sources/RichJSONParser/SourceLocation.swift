@@ -42,15 +42,21 @@ public struct SourceLocation : Equatable, CustomStringConvertible, Codable {
         self.columnInByte = 1
     }
     
+    public func addingLine(newLineLength: Int) -> SourceLocation {
+        var o = self
+        o.addLine(newLineLength: newLineLength)
+        return o
+    }
+    
     public mutating func addColumn(length: Int) {
-        self = addingColumn(length: length)
+        self.offset += length
+        self.columnInByte += length
     }
     
     public func addingColumn(length: Int) -> SourceLocation {
-        return SourceLocation(offset: offset + length,
-                              line: line,
-                              columnInByte: columnInByte + length,
-                              file: file)
+        var o = self
+        o.addColumn(length: length)
+        return o
     }
     
     public static func + (a: SourceLocation, b: Int) -> SourceLocation {
