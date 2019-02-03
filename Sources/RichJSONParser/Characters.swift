@@ -13,7 +13,6 @@ internal extension UInt8 {
     static let rightBracket = UInt8(0x5D)
     static let leftBrace = UInt8(0x7B)
     static let rightBrace = UInt8(0x7D)
-    
 }
 
 internal extension Unicode.Scalar {

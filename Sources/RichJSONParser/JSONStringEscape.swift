@@ -5,7 +5,7 @@ public enum JSONStringEscape {
         case unexceptedEnd(offset: Int)
         case invalidCharacter(offset: Int, Unicode.Scalar)
         case invalidCodePoint(offset: Int, UInt32)
-        case utf8DecodeError(offset: Int)
+        case utf8DecodeError(offset: Int?)
         
         public var errorDescription: String? { return description }
         
@@ -19,13 +19,23 @@ public enum JSONStringEscape {
                 let cs = c.format("U+%04X")
                 return "invalid unicode code point (\(cs)) at \(o)"
             case .utf8DecodeError(offset: let o):
-                return "utf8 decode failed at \(o)"
+                return ["utf8 decode failed",
+                        o.map { "at \($0)" }]
+                    .compactMap { $0 }.joined(separator: " ")
             }
         }
     }
     
     public static func unescape(data: Data) throws -> String {
-        var result = String()
+        let strData = try _unescape(data: data)
+        guard let string = String(data: strData, encoding: .utf8) else {
+            throw Error.utf8DecodeError(offset: nil)
+        }
+        return string
+    }
+    
+    public static func _unescape(data: Data) throws -> Data {
+        var result = Data(capacity: data.count)
         
         var offset = 0
 
@@ -51,25 +61,25 @@ public enum JSONStringEscape {
                 let c1c = c1.codePoint
                 if c1c == .doubleQuote {
                     offset += 1
-                    result.append("\"")
+                    result.append(.doubleQuote)
                 } else if c1c == .backSlash {
                     offset += 1
-                    result.append("\\")
+                    result.append(.backSlash)
                 } else if c1c == .alphaSB {
                     offset += 1
-                    result.append(String(.backSpace))
+                    result.append(.backSpace)
                 } else if c1c == .alphaSF {
                     offset += 1
-                    result.append(String(.formFeed))
+                    result.append(.formFeed)
                 } else if c1c == .alphaSN {
                     offset += 1
-                    result.append("\n")
+                    result.append(.lf)
                 } else if c1c == .alphaSR {
                     offset += 1
-                    result.append("\r")
+                    result.append(.cr)
                 } else if c1c == .alphaST {
                     offset += 1
-                    result.append("\t")
+                    result.append(.tab)
                 } else if c1c == .alphaSU {
                     offset += 1
                     var value: UInt32 = 0
@@ -86,7 +96,8 @@ public enum JSONStringEscape {
                     guard let char = Unicode.Scalar(value) else {
                         throw Error.invalidCodePoint(offset: escapeStart, value)
                     }
-                    result.append(String(char))
+                    let utf8 = String(char).data(using: .utf8)!
+                    result.append(utf8)
                 } else {
                     throw Error.invalidCharacter(offset: offset, c1c)
                 }
@@ -95,12 +106,7 @@ public enum JSONStringEscape {
             } else {
                 let start = data.startIndex + offset
                 let end = start + c0.length
-                
-                guard let str = String(data: data[start..<end], encoding: .utf8) else {
-                    throw Error.utf8DecodeError(offset: offset)
-                }
-                
-                result.append(str)
+                result.append(data[start..<end])
                 offset += c0.length
             }
         }

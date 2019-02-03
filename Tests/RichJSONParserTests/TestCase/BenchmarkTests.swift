@@ -9,8 +9,10 @@ class BenchmarkTests: XCTestCase {
         let data = try Data(contentsOf: file)
         self.measure {
             do {
-                let parser = JSONParser(data: data, file: file)
-                _ = try parser.parse()
+                for _ in 0..<1 {
+                    let parser = JSONParser(data: data, file: file)
+                    _ = try parser.parse()
+                }
             } catch {
                 XCTFail("\(error)")
             }
