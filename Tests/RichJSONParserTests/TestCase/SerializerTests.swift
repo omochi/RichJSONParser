@@ -1,6 +1,5 @@
 import XCTest
 import RichJSONParser
-import OrderedDictionary
 
 class SerializerTests: XCTestCase {
     
@@ -17,7 +16,7 @@ class SerializerTests: XCTestCase {
             .number("1"),
             .string("a"),
             .array([]),
-            .object(OrderedDictionary())
+            .object(JSONDictionary())
             ]),
                                  options: JSONSerializeOptions(isPrettyPrint: false)),
                        "[null,true,false,1,\"a\",[],{}]")
@@ -29,7 +28,7 @@ class SerializerTests: XCTestCase {
             .number("1"),
             .string("a"),
             .array([]),
-            .object(OrderedDictionary())
+            .object(JSONDictionary())
             ]),
                                  options: JSONSerializeOptions(isPrettyPrint: true,
                                                                indentString: "  ")),
@@ -51,13 +50,13 @@ class SerializerTests: XCTestCase {
         XCTAssertEqual(serialize(.array([]),
                                  options: JSONSerializeOptions(isPrettyPrint: false)),
                        "[]")
-        XCTAssertEqual(serialize(.object(OrderedDictionary()),
+        XCTAssertEqual(serialize(.object(JSONDictionary()),
                                  options: JSONSerializeOptions(isPrettyPrint: false)),
                        "{}")
     }
     
     func test3() {
-        let json = JSON.object(OrderedDictionary([
+        let json = JSON.object(JSONDictionary([
             "name": .string("taro"),
             "age": .number("30"),
             "foods": .array([

@@ -9,10 +9,9 @@ let package = Package(
         .library(name: "RichJSONParser", targets: ["RichJSONParser"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/omochi/OrderedDictionary.git", .upToNextMajor(from: "1.0.0")),
     ],
     targets: [
-        .target( name: "RichJSONParser", dependencies: ["OrderedDictionary"]),
+        .target( name: "RichJSONParser", dependencies: []),
         .testTarget(name: "RichJSONParserTests", dependencies: ["RichJSONParser"]),
     ]
 )

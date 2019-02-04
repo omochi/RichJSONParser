@@ -88,16 +88,15 @@ internal class _Serializer {
             emitNewLine()
             depth += 1
             for (i, e) in o.enumerated() {
-                let (k, v) = e
                 emitIndent()
                 data.append(.doubleQuote)
-                data.append(JSONStringEscape.escape(string: k))
+                data.append(JSONStringEscape.escape(string: e.key))
                 data.append(.doubleQuote)
                 data.append(.colon)
                 if options.isPrettyPrint {
                     data.append(.space)
                 }
-                emit(v)
+                emit(e.value)
                 if i < o.count - 1 {
                     data.append(.comma)
                 }

@@ -1,6 +1,5 @@
 import XCTest
 import RichJSONParser
-import OrderedDictionary
 
 internal func sloc(_ offset: Int,
                    _ line: Int,
@@ -31,7 +30,7 @@ class ParserTests: XCTestCase {
                         .number("1"),
                         .string(""),
                         .array([]),
-                        .object(OrderedDictionary())]))
+                        .object(JSONDictionary())]))
        
     }
     
@@ -69,17 +68,17 @@ class ParserTests: XCTestCase {
     
     func testObject1() throws {
         XCTAssertEqual(try parse("{}").toJSON(),
-                       JSON.object(OrderedDictionary()))
+                       JSON.object(JSONDictionary()))
         XCTAssertEqual(try parse("""
 { "a": 1 }
 """).toJSON(),
-                       JSON.object(OrderedDictionary([
+                       JSON.object(JSONDictionary([
                         "a": .number("1")
                         ])))
         XCTAssertEqual(try parse("""
 { "a": 1, }
 """).toJSON(),
-                       JSON.object(OrderedDictionary([
+                       JSON.object(JSONDictionary([
                         "a": .number("1")
                         ])))
         XCTAssertEqual(try parse("""
@@ -88,7 +87,7 @@ class ParserTests: XCTestCase {
   "b": 2
 }
 """).toJSON(),
-                       JSON.object(OrderedDictionary([
+                       JSON.object(JSONDictionary([
                         "a": .number("1"),
                         "b": .number("2"),
                         ])))
@@ -98,7 +97,7 @@ class ParserTests: XCTestCase {
   "b": 2,
 }
 """).toJSON(),
-                       JSON.object(OrderedDictionary([
+                       JSON.object(JSONDictionary([
                         "a": .number("1"),
                         "b": .number("2"),
                         ])))
@@ -115,7 +114,7 @@ class ParserTests: XCTestCase {
 }
 """
         XCTAssertEqual(try parse(json).toJSON(),
-                       JSON.object(OrderedDictionary([
+                       JSON.object(JSONDictionary([
                         "name": .string("taro"),
                         "foods": .array([.number("1")])
                         ])))
@@ -132,7 +131,7 @@ class ParserTests: XCTestCase {
 """
         XCTAssertEqual(try parse(json),
                        ParsedJSON(location: sloc2(0, 1, 1),
-                                  value: .object(OrderedDictionary([
+                                  value: .object(JSONDictionary([
                                     "name": ParsedJSON(location: sloc2(12, 2, 11),
                                                        value: .string("taro")),
                                     "age": ParsedJSON(location: sloc2(29, 3, 10),

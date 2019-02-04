@@ -1,3 +1,13 @@
+2019/02/05
+
+OrderedDictionaryを廃止
+
+Foundationの4.3倍
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.344, relative standard deviation: 0.834%, values: [0.344998, 0.346002, 0.346435, 0.348528, 0.339903, 0.347412, 0.342440, 0.342216, 0.344502, 0.339857], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
 2019/02/04
 
 クロージャコンテキストのヒープ確保を回避

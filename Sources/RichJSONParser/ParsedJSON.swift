@@ -1,5 +1,3 @@
-import OrderedDictionary
-
 public struct ParsedJSON : Equatable {
     public enum Value : Equatable {
         case null
@@ -7,7 +5,7 @@ public struct ParsedJSON : Equatable {
         case number(String)
         case string(String)
         case array([ParsedJSON])
-        case object(OrderedDictionary<String, ParsedJSON>)
+        case object(JSONDictionary<ParsedJSON>)
         
         public var kind : JSON.Kind {
             switch self {
@@ -60,7 +58,7 @@ extension JSON {
         case .object(let o):
             return ParsedJSON(location: loc,
                               value: .object(o.mapValues { $0.toParsedJSON(dummyLocation: loc) }))
-            
+        
         }
     }
 }

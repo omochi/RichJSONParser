@@ -1,5 +1,4 @@
 import Foundation
-import OrderedDictionary
 
 internal let nullKeyword = "null"
 internal let trueKeyword = "true"
@@ -41,11 +40,11 @@ public class JSONParser {
         }
         
         final class Object {
-            var object: OrderedDictionary<String, ParsedJSON>
+            var object: JSONDictionary<ParsedJSON>
             var location: SourceLocation
             var key: String?
             
-            init(object: OrderedDictionary<String, ParsedJSON>,
+            init(object: JSONDictionary<ParsedJSON>,
                  location: SourceLocation)
             {
                 self.object = object
@@ -187,7 +186,7 @@ public class JSONParser {
     }
     
     private func pushObject(token: Token) {
-        let state = State.Object(object: OrderedDictionary(),
+        let state = State.Object(object: JSONDictionary(),
                                  location: token.token.location.with(file: file))
         stack.append(.object(state))
     }
@@ -204,6 +203,7 @@ public class JSONParser {
                                value: ParsedJSON) throws
     {
         let key = state.key!
+        
         state.object[key] = value
         
         try mayConsumeComma()
