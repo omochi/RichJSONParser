@@ -1,5 +1,13 @@
 2019/02/04
 
+クロージャコンテキストのヒープ確保を回避
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.635, relative standard deviation: 0.527%, values: [0.636508, 0.641718, 0.636207, 0.632236, 0.636657, 0.636491, 0.629964, 0.635973, 0.637117, 0.630416], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 TokenもSourceLocationLite
 
 Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.679, relative standard deviation: 0.544%, values: [0.680978, 0.683396, 0.680391, 0.681225, 0.681776, 0.671887, 0.677225, 0.675592, 0.673410, 0.680774], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100

@@ -80,11 +80,9 @@ public enum JSONStringEscape {
         throws -> (data: UnsafePointer<UInt8>, dataSize: Int, consumedSize: Int)
     {
         let resultStart = buffer.current
-        var resultSize = 0
         
         func write(_ byte: UInt8) {
             buffer.write(byte: byte)
-            resultSize += 1
         }
         
         var offset: Int = start
@@ -182,7 +180,7 @@ public enum JSONStringEscape {
         write(0)
         
         return (data: UnsafePointer(buffer.memory.advanced(by: resultStart)),
-                dataSize: resultSize,
+                dataSize: buffer.current - resultStart,
                 consumedSize: offset - start)
     }
     
