@@ -359,7 +359,7 @@ public class JSONTokenizer {
                             kind: JSONToken.Kind,
                             string: String? = nil) -> JSONToken
     {
-        return JSONToken(location: start.with(file: reader.file),
+        return JSONToken(location: start,
                          length: location.offset - start.offset,
                          kind: kind,
                          string: string)

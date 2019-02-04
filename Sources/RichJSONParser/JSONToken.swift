@@ -16,12 +16,12 @@ public struct JSONToken : Equatable, CustomStringConvertible {
         case colon
     }
     
-    public var location: SourceLocation
+    public var location: SourceLocationLite
     public var length: Int
     public var kind: Kind
     public var string: String?
     
-    public init(location: SourceLocation,
+    public init(location: SourceLocationLite,
                 length: Int,
                 kind: Kind,
                 string: String?)

@@ -32,8 +32,10 @@ public class JSONParser {
             var array: [ParsedJSON]
             var location: SourceLocation
             
-            init(location: SourceLocation) {
-                self.array = []
+            init(array: [ParsedJSON],
+                 location: SourceLocation)
+            {
+                self.array = array
                 self.location = location
             }
         }
@@ -43,8 +45,10 @@ public class JSONParser {
             var location: SourceLocation
             var key: String?
             
-            init(location: SourceLocation) {
-                self.object = OrderedDictionary()
+            init(object: OrderedDictionary<String, ParsedJSON>,
+                 location: SourceLocation)
+            {
+                self.object = object
                 self.location = location
             }
         }
@@ -71,6 +75,9 @@ public class JSONParser {
         self.stack = [State.start]
     }
     
+    public var file: URL? {
+        return tokenizer.file
+    }
     private let tokenizer: JSONTokenizer
     private var stack: [State]
     private var state: State {
@@ -101,9 +108,11 @@ public class JSONParser {
              .string(let x):
             self.state = .complete(x)
         case .leftBracket:
-            self.state = .array(State.Array(location: token.token.location))
+            stack.removeLast()
+            pushArray(token: token)
         case .leftBrace:
-            self.state = .object(State.Object(location: token.token.location))
+            stack.removeLast()
+            pushObject(token: token)
         default: throw Error.invalidToken(token.token)
         }
     }
@@ -116,9 +125,9 @@ public class JSONParser {
              .string(let x):
             try addArrayItem(state: state, value: x)
         case .leftBracket:
-            stack.append(.array(State.Array(location: token.token.location)))
+            pushArray(token: token)
         case .leftBrace:
-            stack.append(.object(State.Object(location: token.token.location)))
+            pushObject(token: token)
         case .rightBracket:
             try emitValue(ParsedJSON(location: state.location,
                                      value: .array(state.array)))
@@ -147,9 +156,9 @@ public class JSONParser {
              .string(let x):
             try addObjectItem(state: state, value: x)
         case .leftBracket:
-            stack.append(.array(State.Array(location: token.token.location)))
+            pushArray(token: token)
         case .leftBrace:
-            stack.append(.object(State.Object(location: token.token.location)))
+            pushObject(token: token)
         default: throw Error.invalidToken(token.token)
         }
     }
@@ -169,6 +178,18 @@ public class JSONParser {
             try addObjectItem(state: state, value: value)
         default: fatalError("invalid state")
         }
+    }
+    
+    private func pushArray(token: Token) {
+        let state = State.Array(array: [],
+                                location: token.token.location.with(file: file))
+        stack.append(.array(state))
+    }
+    
+    private func pushObject(token: Token) {
+        let state = State.Object(object: OrderedDictionary(),
+                                 location: token.token.location.with(file: file))
+        stack.append(.object(state))
     }
     
     private func addArrayItem(state: State.Array,
@@ -214,10 +235,12 @@ public class JSONParser {
             let value = try parseKeyword(token: token)
             return Token(value: .keyword(value), token: token)
         case .number:
-            let value = ParsedJSON(location: token.location, value: .number(token.string!))
+            let value = ParsedJSON(location: token.location.with(file: file),
+                                   value: .number(token.string!))
             return Token(value: .number(value), token: token)
         case .string:
-            let value = ParsedJSON(location: token.location, value: .string(token.string!))
+            let value = ParsedJSON(location: token.location.with(file: file),
+                                   value: .string(token.string!))
             return Token(value: .string(value), token: token)
         case .leftBracket: return Token(value: .leftBracket, token: token)
         case .rightBracket: return Token(value: .rightBracket, token: token)
@@ -230,11 +253,14 @@ public class JSONParser {
     private func parseKeyword(token: JSONToken) throws -> ParsedJSON {
         let string = token.string!
         if string == nullKeyword {
-            return ParsedJSON(location: token.location, value: .null)
+            return ParsedJSON(location: token.location.with(file: file),
+                              value: .null)
         } else if string == falseKeyword {
-            return ParsedJSON(location: token.location, value: .boolean(false))
+            return ParsedJSON(location: token.location.with(file: file),
+                              value: .boolean(false))
         } else if string == trueKeyword {
-            return ParsedJSON(location: token.location, value: .boolean(true))
+            return ParsedJSON(location: token.location.with(file: file),
+                              value: .boolean(true))
         } else {
             throw Error.invalidToken(token)
         }
