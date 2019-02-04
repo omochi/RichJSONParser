@@ -4,7 +4,6 @@ public class JSONTokenizer {
     public enum Error : LocalizedError, CustomStringConvertible {
         case invalidCharacter(SourceLocation, Unicode.Scalar)
         case unexceptedEnd(SourceLocation)
-        case utf8DecodeError(SourceLocation, Swift.Error?)
         case stringUnescapeError(SourceLocation, Swift.Error)
         
         public var errorDescription: String? { return description }
@@ -15,12 +14,6 @@ public class JSONTokenizer {
                 return "invalid character (\(ch.debugDescription)) at \(loc)"
             case .unexceptedEnd(let loc):
                 return "unexpected end of data at \(loc)"
-            case .utf8DecodeError(let loc, let e):
-                var d = "utf8 decode failed at \(loc)"
-                if let e = e {
-                    d += ", \(e)"
-                }
-                return d
             case .stringUnescapeError(let loc, let e):
                 return "string unescape failed at \(loc), \(e)"
             }
@@ -35,11 +28,15 @@ public class JSONTokenizer {
         self.unescapingBuffer = StaticBuffer(capacity: data.count)
     }
     
-    public var location: SourceLocation {
+    public var file: URL? {
+        return reader.file
+    }
+    
+    public var location: SourceLocationLite {
         return reader.location
     }
     
-    public func seek(to location: SourceLocation) throws {
+    public func seek(to location: SourceLocationLite) throws {
         try reader.seek(to: location)
     }
     
@@ -112,7 +109,7 @@ public class JSONTokenizer {
                     return try readBlockComment()
                 }
             }
-            throw Error.invalidCharacter(c0Loc, c0)
+            throw invalidCharacterError(c0Loc, c0)
         } else if c0 == .minus || c0.isDigit {
             return try readNumber()
         } else if c0 == .doubleQuote {
@@ -138,7 +135,7 @@ public class JSONTokenizer {
             try readChar()
             return buildToken(start: start, kind: .colon)
         } else {
-            throw Error.invalidCharacter(c0Loc, c0)
+            throw invalidCharacterError(c0Loc, c0)
         }
     }
     
@@ -147,18 +144,18 @@ public class JSONTokenizer {
         
         let ac0Loc = location
         guard let ac0 = try readChar() else {
-            throw Error.unexceptedEnd(ac0Loc)
+            throw unexceptedEndError(ac0Loc)
         }
         guard ac0 == .slash else {
-            throw Error.invalidCharacter(ac0Loc, ac0)
+            throw invalidCharacterError(ac0Loc, ac0)
         }
         
         let ac1Loc = location
         guard let ac1 = try readChar() else {
-            throw Error.unexceptedEnd(ac1Loc)
+            throw unexceptedEndError(ac1Loc)
         }
         guard ac1 == .slash else {
-            throw Error.invalidCharacter(ac1Loc, ac1)
+            throw invalidCharacterError(ac1Loc, ac1)
         }
         
         while true {
@@ -178,18 +175,18 @@ public class JSONTokenizer {
         
         let ac0Loc = location
         guard let ac0 = try readChar() else {
-            throw Error.unexceptedEnd(ac0Loc)
+            throw unexceptedEndError(ac0Loc)
         }
         guard ac0 == .slash else {
-            throw Error.invalidCharacter(ac0Loc, ac0)
+            throw invalidCharacterError(ac0Loc, ac0)
         }
         
         let ac1Loc = location
         guard let ac1 = try readChar() else {
-            throw Error.unexceptedEnd(ac1Loc)
+            throw unexceptedEndError(ac1Loc)
         }
         guard ac1 == .star else {
-            throw Error.invalidCharacter(ac1Loc, ac1)
+            throw invalidCharacterError(ac1Loc, ac1)
         }
         
         while true {
@@ -212,7 +209,7 @@ public class JSONTokenizer {
         
         let c0Loc = location
         guard let c0 = char else {
-            throw Error.unexceptedEnd(c0Loc)
+            throw unexceptedEndError(c0Loc)
         }
         
         if c0 == .minus {
@@ -221,7 +218,7 @@ public class JSONTokenizer {
         
         let c1Loc = location
         guard let c1 = char else {
-            throw Error.unexceptedEnd(c1Loc)
+            throw unexceptedEndError(c1Loc)
         }
         
         if c1 == .num0 {
@@ -239,7 +236,7 @@ public class JSONTokenizer {
                 }
             }
         } else {
-            throw Error.invalidCharacter(c1Loc, c1)
+            throw invalidCharacterError(c1Loc, c1)
         }
         
         guard let c2 = char else {
@@ -292,13 +289,13 @@ public class JSONTokenizer {
         
         let c0Loc = location
         guard let c0 = try readChar() else {
-            throw Error.unexceptedEnd(c0Loc)
+            throw Error.unexceptedEnd(c0Loc.with(file: file))
         }
         guard c0 == .doubleQuote else {
-            throw Error.invalidCharacter(c0Loc, c0)
+            throw invalidCharacterError(c0Loc, c0)
         }
         
-        func unescape(start: SourceLocation) throws -> (string: String, consumedSize: Int) {
+        func unescape(start: SourceLocationLite) throws -> (string: String, consumedSize: Int) {
             do {
                 return try JSONStringEscape
                     .unescapingDecode(data: reader.data,
@@ -306,7 +303,7 @@ public class JSONTokenizer {
                                       size: reader.size,
                                       buffer: unescapingBuffer)
             } catch {
-                throw Error.stringUnescapeError(start, error)
+                throw Error.stringUnescapeError(start.with(file: file), error)
             }
         }
 
@@ -317,10 +314,10 @@ public class JSONTokenizer {
         
         let c1Loc = location
         guard let c1 = try readChar() else {
-            throw Error.unexceptedEnd(c1Loc)
+            throw unexceptedEndError(c1Loc)
         }
         guard c1 == .doubleQuote else {
-            throw Error.invalidCharacter(c1Loc, c1)
+            throw invalidCharacterError(c1Loc, c1)
         }
         
         return buildToken(start: start,
@@ -333,10 +330,10 @@ public class JSONTokenizer {
         
         let c0Loc = location
         guard let c0 = try readChar() else {
-            throw Error.unexceptedEnd(c0Loc)
+            throw unexceptedEndError(c0Loc)
         }
         guard c0.isAlpha else {
-            throw Error.invalidCharacter(c0Loc, c0)
+            throw invalidCharacterError(c0Loc, c0)
         }
         
         while true {
@@ -353,22 +350,22 @@ public class JSONTokenizer {
         }
     }
     
-    private func buildNumberToken(start: SourceLocation) throws -> JSONToken {
+    private func buildNumberToken(start: SourceLocationLite) throws -> JSONToken {
         let string = try decodeUTF8(start: start)
         return buildToken(start: start, kind: .number, string: string)
     }
 
-    private func buildToken(start: SourceLocation,
+    private func buildToken(start: SourceLocationLite,
                             kind: JSONToken.Kind,
                             string: String? = nil) -> JSONToken
     {
-        return JSONToken(location: start,
+        return JSONToken(location: start.with(file: reader.file),
                          length: location.offset - start.offset,
                          kind: kind,
                          string: string)
     }
 
-    private func decodeUTF8(start: SourceLocation)
+    private func decodeUTF8(start: SourceLocationLite)
         throws -> String
     {
         let offset = start.offset
@@ -383,9 +380,16 @@ public class JSONTokenizer {
                         deallocator: .none)
         
         guard let str = String(data: data, encoding: .utf8) else {
-            throw Error.utf8DecodeError(start, nil)
+            throw UTF8Reader.Error.utf8DecodeError(start.with(file: file), nil)
         }
         return str
     }
     
+    private func invalidCharacterError(_ location: SourceLocationLite, _ code: Unicode.Scalar) -> Error {
+        return Error.invalidCharacter(location.with(file: file), code)
+    }
+    
+    private func unexceptedEndError(_ location: SourceLocationLite) -> Error {
+        return Error.unexceptedEnd(location.with(file: file))
+    }
 }

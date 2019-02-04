@@ -21,15 +21,17 @@ public final class UTF8Reader {
     private let _data: NSData
     public let data: UnsafePointer<UInt8>
     public let size: Int
-    private var _nextLocation: SourceLocation
-    private var _location: SourceLocation
+    public let file: URL?
+    
+    private var _nextLocation: SourceLocationLite
+    private var _location: SourceLocationLite
     private var _char: Unicode.Scalar?
     
     public var char: Unicode.Scalar? {
         return _char
     }
 
-    public var location: SourceLocation {
+    public var location: SourceLocationLite {
         return _location
     }
     
@@ -38,10 +40,10 @@ public final class UTF8Reader {
         _data = NSData(data: data)
         self.data = _data.bytes.assumingMemoryBound(to: UInt8.self)
         self.size = _data.length
-        self._nextLocation = SourceLocation(offset: 0,
-                                            line: 1,
-                                            columnInByte: 1,
-                                            file: file)
+        self.file = file
+        self._nextLocation = SourceLocationLite(offset: 0,
+                                                line: 1,
+                                                columnInByte: 1)
         _location = _nextLocation
         try _read()
     }
@@ -54,7 +56,7 @@ public final class UTF8Reader {
         return char
     }
     
-    public func seek(to location: SourceLocation) throws {
+    public func seek(to location: SourceLocationLite) throws {
         _nextLocation = location
         _location = _nextLocation
         try _read()
@@ -94,7 +96,7 @@ public final class UTF8Reader {
             _char = c0c
             _nextLocation = location
         } catch {
-            throw Error.utf8DecodeError(location, error)
+            throw Error.utf8DecodeError(location.with(file: file), error)
         }
     }
 }
