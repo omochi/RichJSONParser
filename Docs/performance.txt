@@ -1,5 +1,13 @@
 2019/02/04
 
+OrderedDictionaryを改良
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.937, relative standard deviation: 0.376%, values: [0.938620, 0.942745, 0.942946, 0.932810, 0.936725, 0.938604, 0.934449, 0.932051, 0.938911, 0.936643], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/04
+
 パーサでのコピーを回避
 タスク量をx100
 
