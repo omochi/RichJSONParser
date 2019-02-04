@@ -66,8 +66,8 @@ public class JSONParser {
         var token: JSONToken
     }
     
-    public init(data: Data, file: URL? = nil) {
-        self.tokenizer = JSONTokenizer(data: data, file: file)
+    public init(data: Data, file: URL? = nil) throws {
+        self.tokenizer = try JSONTokenizer(data: data, file: file)
         self.stack = [State.start]
     }
     
@@ -194,7 +194,7 @@ public class JSONParser {
         switch token.kind {
         case .comma, .end: break
         default:
-            tokenizer.location = location
+            try tokenizer.seek(to: location)
         }
     }
     

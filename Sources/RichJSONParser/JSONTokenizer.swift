@@ -27,25 +27,29 @@ public class JSONTokenizer {
         }
     }
     
-    private let _data: NSData
-    private let data: UnsafePointer<UInt8>
-    public var location: SourceLocation
+    private let reader: UTF8Reader
     private let unescapingBuffer: StaticBuffer
     
-    private var dataSize: Int {
-        return _data.length
+    public init(data: Data, file: URL? = nil) throws {
+        self.reader = try UTF8Reader(data: data, file: file)
+        self.unescapingBuffer = StaticBuffer(capacity: data.count)
     }
     
-    public init(data: Data, file: URL? = nil) {
-        self._data = NSData(data: data) // drop subData
-        self.location = SourceLocation(offset: 0,
-                                       line: 1,
-                                       columnInByte: 1,
-                                       file: file)
-        
-        self.data = _data.bytes.assumingMemoryBound(to: UInt8.self)
-        
-        self.unescapingBuffer = StaticBuffer(capacity: _data.length)
+    public var location: SourceLocation {
+        return reader.location
+    }
+    
+    public func seek(to location: SourceLocation) throws {
+        try reader.seek(to: location)
+    }
+    
+    private var char: Unicode.Scalar? {
+        return reader.char
+    }
+    
+    @discardableResult
+    private func readChar() throws -> Unicode.Scalar? {
+        return try reader.read()
     }
     
     public func read() throws -> JSONToken {
@@ -66,104 +70,105 @@ public class JSONTokenizer {
     public func readRaw() throws -> JSONToken {
         let start = location
         
-        guard let c0 = try char(at: location) else {
+        let c0Loc = location
+        guard let c0 = char else {
             return buildToken(start: start, kind: .end)
         }
         
-        let c0c = c0.codePoint
-        
-        if c0c == .cr {
-            if let c1 = try char(at: location + 1),
-                c1.codePoint == .lf
+        if c0 == .cr {
+            try readChar()
+            if let c1 = char,
+                c1 == .lf
             {
-                location.addLine(newLineLength: 2)
+                try readChar()
                 return buildToken(start: start, kind: .newLine)
             } else {
-                location.addLine(newLineLength: 1)
                 return buildToken(start: start, kind: .newLine)
             }
-        } else if c0c == .lf {
-            location.addLine(newLineLength: 1)
+        } else if c0 == .lf {
+            try readChar()
             return buildToken(start: start, kind: .newLine)
-        } else if c0c == .tab || c0c == .space {
-            location.addColumn(length: 1)
+        } else if c0 == .tab || c0 == .space {
+            try readChar()
             while true {
-                guard let c1 = try char(at: location) else {
+                guard let c1 = char else {
                     break
                 }
-                if c1.codePoint == .tab || c1.codePoint == .space {
-                    location.addColumn(length: 1)
+                if c1 == .tab || c1 == .space {
+                    try readChar()
                     continue
                 }
                 break
             }
             return buildToken(start: start, kind: .whiteSpace)
-        } else if c0c == .slash {
-            if let c1 = try char(at: location + 1) {
-                if c1.codePoint == .slash {
+        } else if c0 == .slash {
+            try readChar()
+            if let c1 = char {
+                if c1 == .slash {
+                    try reader.seek(to: c0Loc)
                     return try readLineComment()
-                } else if c1.codePoint == .star {
+                } else if c1 == .star {
+                    try reader.seek(to: c0Loc)
                     return try readBlockComment()
                 }
             }
-            
-            throw Error.invalidCharacter(location, c0c)
-        } else if c0c == .minus || c0c.isDigit {
+            throw Error.invalidCharacter(c0Loc, c0)
+        } else if c0 == .minus || c0.isDigit {
             return try readNumber()
-        } else if c0c == .doubleQuote {
+        } else if c0 == .doubleQuote {
             return try readString()
-        } else if c0c.isAlpha {
+        } else if c0.isAlpha {
             return try readKeyword()
-        } else if c0c == .leftBracket {
-            location.addColumn(length: 1)
+        } else if c0 == .leftBracket {
+            try readChar()
             return buildToken(start: start, kind: .leftBracket)
-        } else if c0c == .rightBracket {
-            location.addColumn(length: 1)
+        } else if c0 == .rightBracket {
+            try readChar()
             return buildToken(start: start, kind: .rightBracket)
-        } else if c0c == .leftBrace {
-            location.addColumn(length: 1)
+        } else if c0 == .leftBrace {
+            try readChar()
             return buildToken(start: start, kind: .leftBrace)
-        } else if c0c == .rightBrace {
-            location.addColumn(length: 1)
+        } else if c0 == .rightBrace {
+            try readChar()
             return buildToken(start: start, kind: .rightBrace)
-        } else if c0c == .comma {
-            location.addColumn(length: 1)
+        } else if c0 == .comma {
+            try readChar()
             return buildToken(start: start, kind: .comma)
-        } else if c0c == .colon {
-            location.addColumn(length: 1)
-             return buildToken(start: start, kind: .colon)
+        } else if c0 == .colon {
+            try readChar()
+            return buildToken(start: start, kind: .colon)
         } else {
-            throw Error.invalidCharacter(location, c0c)
+            throw Error.invalidCharacter(c0Loc, c0)
         }
     }
     
     public func readLineComment() throws -> JSONToken {
         let start = location
         
-        guard let ac0 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let ac0Loc = location
+        guard let ac0 = try readChar() else {
+            throw Error.unexceptedEnd(ac0Loc)
         }
-        guard ac0.codePoint == .slash else {
-            throw Error.invalidCharacter(location, ac0.codePoint)
+        guard ac0 == .slash else {
+            throw Error.invalidCharacter(ac0Loc, ac0)
         }
-        location.addColumn(length: 1)
         
-        guard let ac1 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let ac1Loc = location
+        guard let ac1 = try readChar() else {
+            throw Error.unexceptedEnd(ac1Loc)
         }
-        guard ac1.codePoint == .slash else {
-            throw Error.invalidCharacter(location, ac1.codePoint)
+        guard ac1 == .slash else {
+            throw Error.invalidCharacter(ac1Loc, ac1)
         }
-        location.addColumn(length: 1)
         
         while true {
-            guard let c0 = try char(at: location) else {
+            guard let c0 = char else {
                 return buildToken(start: start, kind: .lineComment)
             }
-            if c0.codePoint == .cr || c0.codePoint == .lf {
+            if c0 == .cr || c0 == .lf {
                 return buildToken(start: start, kind: .lineComment)
             } else {
-                location.addColumn(length: c0.length)
+                try readChar()
             }
         }
     }
@@ -171,48 +176,33 @@ public class JSONTokenizer {
     public func readBlockComment() throws -> JSONToken {
         let start = location
         
-        guard let ac0 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let ac0Loc = location
+        guard let ac0 = try readChar() else {
+            throw Error.unexceptedEnd(ac0Loc)
         }
-        guard ac0.codePoint == .slash else {
-            throw Error.invalidCharacter(location, ac0.codePoint)
+        guard ac0 == .slash else {
+            throw Error.invalidCharacter(ac0Loc, ac0)
         }
-        location.addColumn(length: 1)
         
-        guard let ac1 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let ac1Loc = location
+        guard let ac1 = try readChar() else {
+            throw Error.unexceptedEnd(ac1Loc)
         }
-        guard ac1.codePoint == .star else {
-            throw Error.invalidCharacter(location, ac1.codePoint)
+        guard ac1 == .star else {
+            throw Error.invalidCharacter(ac1Loc, ac1)
         }
-        location.addColumn(length: 1)
         
         while true {
-            guard let c0 = try char(at: location) else {
+            guard let c0 = try readChar() else {
                 return buildToken(start: start, kind: .blockComment)
             }
-            if c0.codePoint == .cr {
-                if let c1 = try char(at: location + 1),
-                    c1.codePoint == .lf
-                {
-                    location.addLine(newLineLength: 2)
-                } else {
-                    location.addLine(newLineLength: 1)
-                }
-            } else if c0.codePoint == .lf {
-                location.addLine(newLineLength: 1)
-            } else if c0.codePoint == .star {
-                guard let c1 = try char(at: location + 1) else {
-                    location.addColumn(length: 1)
+            if c0 == .star {
+                guard let c1 = try readChar() else {
                     return buildToken(start: start, kind: .blockComment)
                 }
-                if c1.codePoint == .slash {
-                    location.addColumn(length: 2)
+                if c1 == .slash {
                     return buildToken(start: start, kind: .blockComment)
                 }
-                location.addColumn(length: 1)
-            } else {
-                location.addColumn(length: c0.length)
             }
         }
     }
@@ -220,72 +210,74 @@ public class JSONTokenizer {
     public func readNumber() throws -> JSONToken {
         let start = location
         
-        guard let c0 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let c0Loc = location
+        guard let c0 = char else {
+            throw Error.unexceptedEnd(c0Loc)
         }
         
-        if c0.codePoint == .minus {
-            location.addColumn(length: 1)
+        if c0 == .minus {
+            try readChar()
         }
         
-        guard let c1 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let c1Loc = location
+        guard let c1 = char else {
+            throw Error.unexceptedEnd(c1Loc)
         }
         
-        if c1.codePoint == .num0 {
-            location.addColumn(length: 1)
-        } else if c1.codePoint.isDigit1To9 {
-            location.addColumn(length: 1)
+        if c1 == .num0 {
+            try readChar()
+        } else if c1.isDigit1To9 {
+            try readChar()
             
             while true {
-                if let c2 = try char(at: location),
-                    c2.codePoint.isDigit
+                if let c2 = char,
+                    c2.isDigit
                 {
-                    location.addColumn(length: 1)
+                    try readChar()
                 } else {
                     break
                 }
             }
         } else {
-            throw Error.invalidCharacter(location, c1.codePoint)
+            throw Error.invalidCharacter(c1Loc, c1)
         }
         
-        guard let c2 = try char(at: location) else {
+        guard let c2 = char else {
             return try buildNumberToken(start: start)
         }
         
-        if c2.codePoint == .dot {
-            location.addColumn(length: 1)
+        if c2 == .dot {
+            try readChar()
             
             while true {
-                if let c3 = try char(at: location),
-                    c3.codePoint.isDigit
+                if let c3 = char,
+                    c3.isDigit
                 {
-                    location.addColumn(length: 1)
+                    try readChar()
                 } else {
                     break
                 }
             }
         }
         
-        guard let c3 = try char(at: location) else {
+        guard let c3 = char else {
             return try buildNumberToken(start: start)
         }
         
-        if c3.codePoint == .alphaSE || c3.codePoint == .alphaLE {
-            location.addColumn(length: 1)
+        if c3 == .alphaSE || c3 == .alphaLE {
+            try readChar()
             
-            if let c4 = try char(at: location),
-                c4.codePoint == .plus || c4.codePoint == .minus
+            if let c4 = char,
+                c4 == .plus || c4 == .minus
             {
-                location.addColumn(length: 1)
+                try readChar()
             }
             
             while true {
-                if let c5 = try char(at: location),
-                    c5.codePoint.isDigit
+                if let c5 = char,
+                    c5.isDigit
                 {
-                    location.addColumn(length: 1)
+                    try readChar()
                 } else {
                     break
                 }
@@ -298,39 +290,38 @@ public class JSONTokenizer {
     private func readString() throws -> JSONToken {
         let start = location
         
-        guard let c0 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let c0Loc = location
+        guard let c0 = try readChar() else {
+            throw Error.unexceptedEnd(c0Loc)
         }
-        guard c0.codePoint == .doubleQuote else {
-            throw Error.invalidCharacter(location, c0.codePoint)
+        guard c0 == .doubleQuote else {
+            throw Error.invalidCharacter(c0Loc, c0)
         }
-        location.addColumn(length: 1)
         
-        func unescape() throws -> String {
-            let start = location
-            
+        func unescape(start: SourceLocation) throws -> (string: String, consumedSize: Int) {
             do {
-                let result = try JSONStringEscape
-                    .unescapingDecode(data: data,
+                return try JSONStringEscape
+                    .unescapingDecode(data: reader.data,
                                       start: start.offset,
-                                      size: dataSize,
+                                      size: reader.size,
                                       buffer: unescapingBuffer)
-                location.addColumn(length: result.consumedSize)
-                return result.string
             } catch {
                 throw Error.stringUnescapeError(start, error)
             }
         }
 
-        let string = try unescape()
+        var loc = self.location
+        let (string, consumedSize) = try unescape(start: loc)
+        loc.addColumn(length: consumedSize)
+        try seek(to: loc)
         
-        guard let c1 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let c1Loc = location
+        guard let c1 = try readChar() else {
+            throw Error.unexceptedEnd(c1Loc)
         }
-        guard c1.codePoint == .doubleQuote else {
-            throw Error.invalidCharacter(location, c1.codePoint)
+        guard c1 == .doubleQuote else {
+            throw Error.invalidCharacter(c1Loc, c1)
         }
-        location.addColumn(length: 1)
         
         return buildToken(start: start,
                           kind: .string,
@@ -340,20 +331,21 @@ public class JSONTokenizer {
     private func readKeyword() throws -> JSONToken {
         let start = location
         
-        guard let c0 = try char(at: location) else {
-            throw Error.unexceptedEnd(location)
+        let c0Loc = location
+        guard let c0 = try readChar() else {
+            throw Error.unexceptedEnd(c0Loc)
         }
-        guard c0.codePoint.isAlpha else {
-            throw Error.invalidCharacter(location, c0.codePoint)
+        guard c0.isAlpha else {
+            throw Error.invalidCharacter(c0Loc, c0)
         }
         
         while true {
-            if let c1 = try char(at: location),
-                c1.codePoint.isAlpha
+            if let c1 = char,
+                c1.isAlpha
             {
-                location.addColumn(length: 1)
+                try readChar()
             } else {
-                let string = try decodeUTF8(start: start, end: location)
+                let string = try decodeUTF8(start: start)
                 return buildToken(start: start,
                                   kind: .keyword,
                                   string: string)
@@ -362,7 +354,7 @@ public class JSONTokenizer {
     }
     
     private func buildNumberToken(start: SourceLocation) throws -> JSONToken {
-        let string = try decodeUTF8(start: start, end: location)
+        let string = try decodeUTF8(start: start)
         return buildToken(start: start, kind: .number, string: string)
     }
 
@@ -376,18 +368,17 @@ public class JSONTokenizer {
                          string: string)
     }
 
-    private func decodeUTF8(start: SourceLocation,
-                            end: SourceLocation)
+    private func decodeUTF8(start: SourceLocation)
         throws -> String
     {
         let offset = start.offset
-        let length = end.offset - offset
+        let length = location.offset - offset
         
-        guard offset + length <= dataSize else {
+        guard offset + length <= reader.size else {
             fatalError("out of range")
         }
         
-        let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: self.data.advanced(by: offset)),
+        let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: reader.data.advanced(by: offset)),
                         count: length,
                         deallocator: .none)
         
@@ -395,16 +386,6 @@ public class JSONTokenizer {
             throw Error.utf8DecodeError(start, nil)
         }
         return str
-    }
-    
-    private func char(at location: SourceLocation) throws -> DecodedUnicodeChar? {
-        do {
-            return try UTF8Decoder.decodeUTF8(at: location.offset,
-                                              from: data,
-                                              size: dataSize)
-        } catch {
-            throw Error.utf8DecodeError(location, error)
-        }
     }
     
 }

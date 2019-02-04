@@ -98,7 +98,7 @@ null
                     line: UInt = #line) throws
     {
         let data = string.data(using: .utf8)!
-        let tk = JSONTokenizer(data: data)
+        let tk = try JSONTokenizer(data: data)
         var actual = [JSONToken]()
         while true {
             let token = try tk.readRaw()

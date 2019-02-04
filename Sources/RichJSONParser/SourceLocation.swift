@@ -59,6 +59,16 @@ public struct SourceLocation : Equatable, CustomStringConvertible, Codable {
         return o
     }
     
+    public mutating func addOffset(length: Int) {
+        self.offset += length
+    }
+    
+    public func addingOffset(length: Int) -> SourceLocation {
+        var o = self
+        o.addOffset(length: length)
+        return o
+    }
+    
     public static func + (a: SourceLocation, b: Int) -> SourceLocation {
         return a.addingColumn(length: b)
     }

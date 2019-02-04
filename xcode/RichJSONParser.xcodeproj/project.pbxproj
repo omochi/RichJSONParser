@@ -11,6 +11,8 @@
 		D6100EBD22071CB000CD4974 /* BenchmarkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */; };
 		D6100EBF22071D3300CD4974 /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = D6100EBE22071D3300CD4974 /* Resources */; };
 		D6100EC3220789A600CD4974 /* StaticBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EC2220789A600CD4974 /* StaticBuffer.swift */; };
+		D6100EC72207C3BE00CD4974 /* UTF8Reader.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EC62207C3BE00CD4974 /* UTF8Reader.swift */; };
+		D6100EC92208179F00CD4974 /* UTF8ReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6100EC82208179F00CD4974 /* UTF8ReaderTests.swift */; };
 		D639340821F015D8001DFC2A /* OrderedDictionary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D639340721F015D8001DFC2A /* OrderedDictionary.framework */; };
 		D639342421F03FE7001DFC2A /* RichJSONParser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D63933F421F0119D001DFC2A /* RichJSONParser.framework */; };
 		D6FB036321F5C7F7002CDE0A /* JSONStringEscape.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6FB035721F5C7F7002CDE0A /* JSONStringEscape.swift */; };
@@ -46,6 +48,8 @@
 		D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BenchmarkTests.swift; sourceTree = "<group>"; };
 		D6100EBE22071D3300CD4974 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		D6100EC2220789A600CD4974 /* StaticBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaticBuffer.swift; sourceTree = "<group>"; };
+		D6100EC62207C3BE00CD4974 /* UTF8Reader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTF8Reader.swift; sourceTree = "<group>"; };
+		D6100EC82208179F00CD4974 /* UTF8ReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UTF8ReaderTests.swift; sourceTree = "<group>"; };
 		D63933F421F0119D001DFC2A /* RichJSONParser.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RichJSONParser.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D63933F821F0119D001DFC2A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D639340721F015D8001DFC2A /* OrderedDictionary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = OrderedDictionary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +100,7 @@
 				D6FB037221F5C80E002CDE0A /* SerializerTests.swift */,
 				D6FB036F21F5C80E002CDE0A /* StringEscapeTests.swift */,
 				D6FB037121F5C80E002CDE0A /* TokenizerTests.swift */,
+				D6100EC82208179F00CD4974 /* UTF8ReaderTests.swift */,
 				D6100EBC22071CB000CD4974 /* BenchmarkTests.swift */,
 			);
 			path = TestCase;
@@ -140,8 +145,8 @@
 		D63933FF21F013D8001DFC2A /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				D6FB035921F5C7F7002CDE0A /* Characters.swift */,
 				D6FB036121F5C7F7002CDE0A /* DecodedUnicodeChar.swift */,
+				D6FB035921F5C7F7002CDE0A /* Characters.swift */,
 				D6FB035A21F5C7F7002CDE0A /* FormatExtension.swift */,
 				D6FB035D21F5C7F7002CDE0A /* JSON.swift */,
 				D6FB035F21F5C7F7002CDE0A /* JSONParser.swift */,
@@ -153,6 +158,7 @@
 				D6FB035B21F5C7F7002CDE0A /* SourceLocation.swift */,
 				D6FB035E21F5C7F7002CDE0A /* UTF8Decoder.swift */,
 				D6100EC2220789A600CD4974 /* StaticBuffer.swift */,
+				D6100EC62207C3BE00CD4974 /* UTF8Reader.swift */,
 			);
 			name = Sources;
 			path = ../../Sources/RichJSONParser;
@@ -299,6 +305,7 @@
 				D6100EC3220789A600CD4974 /* StaticBuffer.swift in Sources */,
 				D6FB036821F5C7F7002CDE0A /* ParsedJSON.swift in Sources */,
 				D6FB036A21F5C7F7002CDE0A /* UTF8Decoder.swift in Sources */,
+				D6100EC72207C3BE00CD4974 /* UTF8Reader.swift in Sources */,
 				D6FB036D21F5C7F7002CDE0A /* DecodedUnicodeChar.swift in Sources */,
 				D6FB036B21F5C7F7002CDE0A /* JSONParser.swift in Sources */,
 				D6FB036921F5C7F7002CDE0A /* JSON.swift in Sources */,
@@ -322,6 +329,7 @@
 				D6100EBD22071CB000CD4974 /* BenchmarkTests.swift in Sources */,
 				D6100EBB22071C6F00CD4974 /* Resources.swift in Sources */,
 				D6FB037321F5C80E002CDE0A /* StringEscapeTests.swift in Sources */,
+				D6100EC92208179F00CD4974 /* UTF8ReaderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

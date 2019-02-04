@@ -140,7 +140,7 @@ class ParserTests: XCTestCase {
 
     private func parse(_ json: String) throws -> ParsedJSON {
         let data = json.data(using: .utf8)!
-        let p = JSONParser(data: data)
+        let p = try JSONParser(data: data)
         return try p.parse()
     }
 
