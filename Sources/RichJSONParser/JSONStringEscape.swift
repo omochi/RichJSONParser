@@ -255,6 +255,12 @@ public enum JSONStringEscape {
 }
 
 extension NSMutableData {
+    internal func append(byte: UInt8) {
+        withUnsafePointer(to: byte) { (p) in
+            self.append(p, length: 1)
+        }
+    }
+    
     internal func appendByte(_ byte: UInt8) {
         withUnsafePointer(to: byte) { (p) in
             self.append(p, length: 1)

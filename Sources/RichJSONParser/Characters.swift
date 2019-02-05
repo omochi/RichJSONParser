@@ -13,6 +13,17 @@ internal extension UInt8 {
     static let rightBracket = UInt8(0x5D)
     static let leftBrace = UInt8(0x7B)
     static let rightBrace = UInt8(0x7D)
+    
+    static let alphaSA = UInt8(0x61)
+    static let alphaSB = UInt8(0x62)
+    static let alphaSE = UInt8(0x65)
+    static let alphaSF = UInt8(0x66)
+    static let alphaSL = UInt8(0x6C)
+    static let alphaSN = UInt8(0x6e)
+    static let alphaSR = UInt8(0x72)
+    static let alphaST = UInt8(0x74)
+    static let alphaSU = UInt8(0x75)
+    static let alphaSZ = UInt8(0x7A)
 }
 
 internal extension Unicode.Scalar {
