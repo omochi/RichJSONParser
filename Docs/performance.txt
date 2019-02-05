@@ -1,5 +1,17 @@
 2019/02/05
 
+ParsedJSONをSourceLocationLiteに変更
+
+x3.34
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParse]' measured [Time, seconds] average: 0.271, relative standard deviation: 1.182%, values: [0.271033, 0.268704, 0.269261, 0.276137, 0.273135, 0.268640, 0.274970, 0.273666, 0.266245, 0.267493], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testParseFoundationX100]' measured [Time, seconds] average: 0.081, relative standard deviation: 3.314%, values: [0.085343, 0.083761, 0.083731, 0.081936, 0.078524, 0.079706, 0.078743, 0.078682, 0.078616, 0.077261], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
+2019/02/05
+
 OrderedDictionaryを廃止
 
 Foundationの4.3倍

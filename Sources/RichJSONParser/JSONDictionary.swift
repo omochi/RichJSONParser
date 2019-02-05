@@ -53,6 +53,10 @@ extension JSONDictionary {
         }
     }
     
+    public mutating func reserveCapacity(_ minimumCapacity: Int) {
+        self.items.reserveCapacity(minimumCapacity)
+    }
+    
     public var keys: [String] {
         return self.items.map { $0.key }
     }

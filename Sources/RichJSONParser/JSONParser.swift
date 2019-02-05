@@ -6,17 +6,21 @@ internal let falseKeyword = "false"
 
 public class JSONParser {
     public enum Error : LocalizedError, CustomStringConvertible {
-        case invalidToken(JSONToken)
-        case unexceptedToken(JSONToken, expected: String)
+        case invalidToken(JSONToken, file: URL?)
+        case unexceptedToken(JSONToken, expected: String, file: URL?)
         
         public var errorDescription: String? { return description }
         
         public var description: String {
             switch self {
-            case .invalidToken(let token):
-                return "invalid token (\(token))"
-            case .unexceptedToken(let token, let exp):
-                return "unexcepted token (\(token)), expected (\(exp))"
+            case .invalidToken(let token, let file):
+                var d = "invalid token \(token)"
+                d += file.map { ", file: \($0.path)" } ?? ""
+                return d
+            case .unexceptedToken(let token, let exp, let file):
+                var d = "unexcepted token \(token), expected: \(exp)"
+                d += file.map { ", file: \($0.path)" } ?? ""
+                return d
             }
         }
     }
@@ -29,10 +33,10 @@ public class JSONParser {
         
         final class Array {
             var array: [ParsedJSON]
-            var location: SourceLocation
+            var location: SourceLocationLite
             
             init(array: [ParsedJSON],
-                 location: SourceLocation)
+                 location: SourceLocationLite)
             {
                 self.array = array
                 self.location = location
@@ -41,11 +45,11 @@ public class JSONParser {
         
         final class Object {
             var object: JSONDictionary<ParsedJSON>
-            var location: SourceLocation
+            var location: SourceLocationLite
             var key: String?
             
             init(object: JSONDictionary<ParsedJSON>,
-                 location: SourceLocation)
+                 location: SourceLocationLite)
             {
                 self.object = object
                 self.location = location
@@ -112,7 +116,7 @@ public class JSONParser {
         case .leftBrace:
             stack.removeLast()
             pushObject(token: token)
-        default: throw Error.invalidToken(token.token)
+        default: throw Error.invalidToken(token.token, file: file)
         }
     }
         
@@ -130,7 +134,7 @@ public class JSONParser {
         case .rightBracket:
             try emitValue(ParsedJSON(location: state.location,
                                      value: .array(state.array)))
-        default: throw Error.invalidToken(token.token)
+        default: throw Error.invalidToken(token.token, file: file)
         }
     }
 
@@ -143,7 +147,7 @@ public class JSONParser {
             try emitValue(ParsedJSON(location: state.location,
                                      value: .object(state.object)))
             return
-        default: throw Error.unexceptedToken(keyToken, expected: "key string")
+        default: throw Error.unexceptedToken(keyToken, expected: "key string", file: file)
         }
         
         try consumeColon()
@@ -158,7 +162,7 @@ public class JSONParser {
             pushArray(token: token)
         case .leftBrace:
             pushObject(token: token)
-        default: throw Error.invalidToken(token.token)
+        default: throw Error.invalidToken(token.token, file: file)
         }
     }
     
@@ -181,13 +185,13 @@ public class JSONParser {
     
     private func pushArray(token: Token) {
         let state = State.Array(array: [],
-                                location: token.token.location.with(file: file))
+                                location: token.token.location)
         stack.append(.array(state))
     }
     
     private func pushObject(token: Token) {
         let state = State.Object(object: JSONDictionary(),
-                                 location: token.token.location.with(file: file))
+                                 location: token.token.location)
         stack.append(.object(state))
     }
     
@@ -224,7 +228,7 @@ public class JSONParser {
         switch token.kind {
         case .colon: break
         default:
-            throw Error.unexceptedToken(token, expected: "colon")
+            throw Error.unexceptedToken(token, expected: "colon", file: file)
         }
     }
     
@@ -235,34 +239,34 @@ public class JSONParser {
             let value = try parseKeyword(token: token)
             return Token(value: .keyword(value), token: token)
         case .number:
-            let value = ParsedJSON(location: token.location.with(file: file),
+            let value = ParsedJSON(location: token.location,
                                    value: .number(token.string!))
             return Token(value: .number(value), token: token)
         case .string:
-            let value = ParsedJSON(location: token.location.with(file: file),
+            let value = ParsedJSON(location: token.location,
                                    value: .string(token.string!))
             return Token(value: .string(value), token: token)
         case .leftBracket: return Token(value: .leftBracket, token: token)
         case .rightBracket: return Token(value: .rightBracket, token: token)
         case .leftBrace: return Token(value: .leftBrace, token: token)
         case .rightBrace: return Token(value: .rightBrace, token: token)
-        default: throw Error.invalidToken(token)
+        default: throw Error.invalidToken(token, file: file)
         }
     }
     
     private func parseKeyword(token: JSONToken) throws -> ParsedJSON {
         let string = token.string!
         if string == nullKeyword {
-            return ParsedJSON(location: token.location.with(file: file),
+            return ParsedJSON(location: token.location,
                               value: .null)
         } else if string == falseKeyword {
-            return ParsedJSON(location: token.location.with(file: file),
+            return ParsedJSON(location: token.location,
                               value: .boolean(false))
         } else if string == trueKeyword {
-            return ParsedJSON(location: token.location.with(file: file),
+            return ParsedJSON(location: token.location,
                               value: .boolean(true))
         } else {
-            throw Error.invalidToken(token)
+            throw Error.invalidToken(token, file: file)
         }
     }
 }

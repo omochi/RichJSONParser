@@ -37,7 +37,7 @@ class ParserTests: XCTestCase {
     func testNumber1() throws {
         let o = try parse("  123  ")
         
-        XCTAssertEqual(o, ParsedJSON(location: sloc2(2, 1, 3),
+        XCTAssertEqual(o, ParsedJSON(location: sloc(2, 1, 3),
                                      value: .number("123")))
     }
     
@@ -130,17 +130,17 @@ class ParserTests: XCTestCase {
 }
 """
         XCTAssertEqual(try parse(json),
-                       ParsedJSON(location: sloc2(0, 1, 1),
+                       ParsedJSON(location: sloc(0, 1, 1),
                                   value: .object(JSONDictionary([
-                                    "name": ParsedJSON(location: sloc2(12, 2, 11),
+                                    "name": ParsedJSON(location: sloc(12, 2, 11),
                                                        value: .string("taro")),
-                                    "age": ParsedJSON(location: sloc2(29, 3, 10),
+                                    "age": ParsedJSON(location: sloc(29, 3, 10),
                                                       value: .number("30")),
-                                    "foods": ParsedJSON(location: sloc2(44, 4, 12),
+                                    "foods": ParsedJSON(location: sloc(44, 4, 12),
                                                         value: .array([
-                                                            ParsedJSON(location: sloc2(45, 4, 13),
+                                                            ParsedJSON(location: sloc(45, 4, 13),
                                                                        value: .string("apple")),
-                                                            ParsedJSON(location: sloc2(54, 4, 22),
+                                                            ParsedJSON(location: sloc(54, 4, 22),
                                                                        value: .string("banana"))
                                                             ])),
                         ]))))

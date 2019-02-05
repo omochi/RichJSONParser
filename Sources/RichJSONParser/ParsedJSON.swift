@@ -1,4 +1,4 @@
-public struct ParsedJSON : Equatable {
+public struct ParsedJSON {
     public enum Value : Equatable {
         case null
         case boolean(Bool)
@@ -19,16 +19,28 @@ public struct ParsedJSON : Equatable {
         }
     }
     
-    public var location: SourceLocation
-    public var value: Value
+    public let location: SourceLocationLite
+    public let value: Value
     
-    public init(location: SourceLocation,
+    public init(location: SourceLocationLite,
                 value: Value)
     {
         self.location = location
         self.value = value
     }
 }
+
+extension ParsedJSON : Equatable {
+//    public static func == (a: ParsedJSON, b: ParsedJSON) -> Bool {
+//        guard a.location == b.location,
+//            a.value == b.value else
+//        {
+//            return false
+//        }
+//        return true
+//    }
+}
+
 
 extension ParsedJSON {
     public func toJSON() -> JSON {
@@ -46,7 +58,7 @@ extension ParsedJSON {
 }
 
 extension JSON {
-    public func toParsedJSON(dummyLocation loc: SourceLocation) -> ParsedJSON {
+    public func toParsedJSON(dummyLocation loc: SourceLocationLite) -> ParsedJSON {
         switch self {
         case .null: return ParsedJSON(location: loc, value: .null)
         case .boolean(let b): return ParsedJSON(location: loc, value: .boolean(b))
