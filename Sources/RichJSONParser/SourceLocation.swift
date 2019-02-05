@@ -45,6 +45,19 @@ public struct SourceLocation : Equatable, CustomStringConvertible, Codable {
                   file: nil)
     }
     
+    public var lite: SourceLocationLite {
+        get {
+            return SourceLocationLite(offset: offset,
+                                      line: line,
+                                      columnInByte: columnInByte)
+        }
+        set {
+            self.offset = newValue.offset
+            self.line = newValue.line
+            self.columnInByte = newValue.columnInByte
+        }
+    }
+    
     public mutating func addLine(newLineLength: Int) {
         self.offset += newLineLength
         self.line += 1

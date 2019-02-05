@@ -200,3 +200,38 @@ extension JSONDictionary : CustomReflectable {
     }
 }
 
+internal struct JSONDictionaryCodingKey : Swift.CodingKey {
+    public var stringValue: String
+    
+    public init(stringValue: String) {
+        self.stringValue = stringValue
+    }
+    
+    public var intValue: Int? { return nil }
+    
+    public init?(intValue: Int) {
+        self.init(stringValue: "\(intValue)")
+    }
+}
+
+extension JSONDictionary : Encodable where Value : Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: JSONDictionaryCodingKey.self)
+        for (k, v) in self {
+            try c.encode(v, forKey: JSONDictionaryCodingKey(stringValue: k))
+        }
+    }
+}
+
+extension JSONDictionary : Decodable where Value : Decodable {
+    public init(from decoder: Decoder) throws {
+        self.init()
+        
+        let c = try decoder.container(keyedBy: JSONDictionaryCodingKey.self)
+        
+        for key in c.allKeys {
+            let value = try c.decode(Value.self, forKey: key)
+            self[key.stringValue] = value
+        }
+    }
+}
