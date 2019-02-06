@@ -56,6 +56,8 @@ public final class FastJSONParser {
     public let file: URL?
     private var location: SourceLocationLite
     
+    private let unescapingBuffer: StaticBuffer
+    
     private var stack: [State]
     private var state: State {
         get { return stack[stack.count - 1] }
@@ -88,6 +90,7 @@ public final class FastJSONParser {
         self.nsData = nsData
         self.data = nsData.mutableBytes.assumingMemoryBound(to: UInt8.self)
         self.file = file
+        self.unescapingBuffer = StaticBuffer(capacity: nsData.length)
         self.stack = [State.root(nil)]
         self.location = SourceLocationLite()
     }
@@ -363,13 +366,15 @@ public final class FastJSONParser {
     }
     
     private func processString(_ loc0: SourceLocationLite) throws {
-//        if try tryProcessFastString(loc0) {
-//            return
-//        }
-        
+        if try tryProcessFastString(loc0) {
+            return
+        }
+
+        location = loc0
         location.addColumn(length: 1)
         
-        let result = NSMutableData()
+        let result = self.unescapingBuffer
+        let resultStart = result.current
         
         while true {
             let loc1 = location
@@ -384,28 +389,28 @@ public final class FastJSONParser {
                 switch b2 {
                 case .doubleQuote:
                     location.addColumn(length: 1)
-                    result.append(byte: .doubleQuote)
+                    result.write(byte: .doubleQuote)
                 case .backSlash:
                     location.addColumn(length: 1)
-                    result.append(byte: .backSlash)
+                    result.write(byte: .backSlash)
                 case .slash:
                     location.addColumn(length: 1)
-                    result.append(byte: .slash)
+                    result.write(byte: .slash)
                 case .alSB:
                     location.addColumn(length: 1)
-                    result.append(byte: .backSpace)
+                    result.write(byte: .backSpace)
                 case .alSF:
                     location.addColumn(length: 1)
-                    result.append(byte: .backSpace)
+                    result.write(byte: .backSpace)
                 case .alSN:
                     location.addColumn(length: 1)
-                    result.append(byte: .lf)
+                    result.write(byte: .lf)
                 case .alSR:
                     location.addColumn(length: 1)
-                    result.append(byte: .cr)
+                    result.write(byte: .cr)
                 case .alST:
                     location.addColumn(length: 1)
-                    result.append(byte: .tab)
+                    result.write(byte: .tab)
                 case .alSU:
                     location.addColumn(length: 1)
                     
@@ -431,27 +436,32 @@ public final class FastJSONParser {
                         throw invalidCharError(b1, location: loc1)
                     }
                     for x in String(String.UnicodeScalarView([uni])).utf8 {
-                        result.append(byte: x)
+                        result.write(byte: x)
                     }
                 default:
                     throw invalidCharError(b1, location: loc1)
                 }
             } else if b1.isPrintable {
                 location.addColumn(length: 1)
-                result.append(byte: b1)
+                result.write(byte: b1)
             } else if b1 == 0 {
                 throw unexceptedEndError(location: loc1)
             } else if validateUTF8MultiBytes(b1, loc1) {
                 let len = location.offset - loc1.offset
-                result.append(data.advanced(by: loc1.offset), length: len)
+                
+                var p = data.advanced(by: loc1.offset)
+                for _ in 0..<len {
+                    result.write(byte: p.pointee)
+                    p = p.advanced(by: 1)
+                }
             } else {
                 throw invalidCharError(b1, location: loc0)
             }
         }
         
-        result.append(byte: 0)
+        result.write(byte: 0)
         
-        let str = String(cString: result.bytes.assumingMemoryBound(to: UInt8.self))
+        let str = String(cString: result.memory.advanced(by: resultStart))
         try emitString(str, loc0)
     }
     
@@ -482,6 +492,7 @@ public final class FastJSONParser {
             if b1 == .doubleQuote {
                 loc2 = location
                 location.addColumn(length: 1)
+                break
             } else if b1 == .backSlash {
                 return false
             } else if b1.isPrintable {
@@ -492,7 +503,7 @@ public final class FastJSONParser {
         }
         
         let str = makeString(start: loc1, end: loc2)
-        try emitString(str, loc1)
+        try emitString(str, loc0)
         return true
     }
     

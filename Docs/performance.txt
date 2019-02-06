@@ -1,3 +1,21 @@
+2019/02/07
+
+高速実装
+
+基本
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testFastParse]' measured [Time, seconds] average: 0.620, relative standard deviation: 2.122%, values: [0.656958, 0.614229, 0.604745, 0.614117, 0.616428, 0.623024, 0.615965, 0.615234, 0.619741, 0.618442], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+StaticBufferを搭載
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testFastParse]' measured [Time, seconds] average: 0.200, relative standard deviation: 0.567%, values: [0.199656, 0.198342, 0.198346, 0.198737, 0.200931, 0.199413, 0.201297, 0.201395, 0.199356, 0.198621], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+FastStringを搭載 x2.3
+
+Test Case '-[RichJSONParserTests.BenchmarkTests testFastParse]' measured [Time, seconds] average: 0.188, relative standard deviation: 1.111%, values: [0.189139, 0.188038, 0.190291, 0.186963, 0.189947, 0.188541, 0.185492, 0.190289, 0.185613, 0.184146], performanceMetricID:com.apple.XCTPerformanceMetric_WallClockTime, baselineName: "", baselineAverage: , maxPercentRegression: 10.000%, maxPercentRelativeStandardDeviation: 10.000%, maxRegression: 0.100, maxStandardDeviation: 0.100
+
+---
+
 2019/02/05
 
 ParsedJSONをSourceLocationLiteに変更
