@@ -31,7 +31,6 @@ class ParserTests: XCTestCase {
                         .string(""),
                         .array([]),
                         .object(JSONDictionary())]))
-       
     }
     
     func testNumber1() throws {
@@ -118,7 +117,6 @@ class ParserTests: XCTestCase {
                         "name": .string("taro"),
                         "foods": .array([.number("1")])
                         ])))
-        
     }
     
     func test1() throws {

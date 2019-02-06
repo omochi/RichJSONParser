@@ -151,8 +151,9 @@ public enum JSONStringEscape {
                         throw Error.invalidCodePoint(offset: offset, hex1.code)
                     }
                     
-                    guard let char = UInt32.combineSurrogates(high: hex0.code,
-                                                              low: hex1.code) else
+                    let code = UInt32.combineSurrogates(high: hex0.code,
+                                                        low: hex1.code)
+                    guard let char = Unicode.Scalar(code) else
                     {
                         throw Error.invalidCodePoint(offset: offset, hex1.code)
                     }

@@ -19,6 +19,21 @@ class BenchmarkTests: XCTestCase {
         }
     }
     
+    func testFastParse() throws {
+        let file = Resources.shared.path("first-mate-tests.json")
+        let data = try Data(contentsOf: file)
+        self.measure {
+            do {
+                for _ in 0..<100 {
+                    let parser = FastJSONParser(data: data, file: file)
+                    _ = try parser.parse()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+    }
+    
     func testParseFoundationX100() throws {
         let file = Resources.shared.path("first-mate-tests.json")
         let data = try Data(contentsOf: file)

@@ -14,11 +14,12 @@ public final class FastJSONParser {
             case .unexceptedEnd(let loc):
                 return "unexcepted end at \(loc)"
             case .invalidChar(let char, let loc):
-                let char = String(format: "0x%c, 0x%02X", char, char)
+                let char = String(format: "%c, 0x%02X", char, char)
                 return "invalid char (\(char)) at \(loc)"
             }
         }
     }
+    
     private enum State {
         case root(ParsedJSON?)
         case array(Array)
@@ -65,16 +66,25 @@ public final class FastJSONParser {
         return data.advanced(by: location.offset).pointee
     }
     
-    // it does not care about newline
     private func readByte() -> UInt8 {
         let b = byte
         location.addColumn(length: 1)
         return b
     }
     
-    public init(file: URL) throws {
+    public convenience init(file: URL) throws {
         let nsData = try NSMutableData(contentsOf: file, options: [])
         nsData.append(byte: 0)
+        self.init(nsData: nsData, file: file)
+    }
+    
+    public convenience init(data: Data, file: URL?) {
+        let nsData = NSMutableData(data: data)
+        nsData.append(byte: 0)
+        self.init(nsData: nsData, file: file)
+    }
+    
+    internal init(nsData: NSMutableData, file: URL?) {
         self.nsData = nsData
         self.data = nsData.mutableBytes.assumingMemoryBound(to: UInt8.self)
         self.file = file
@@ -83,62 +93,95 @@ public final class FastJSONParser {
     }
     
     public func parse() throws -> ParsedJSON {
-        while true {
-            if case .root(.some(let json)) = state
-            {
-                return json
+        loop0: while true {
+
+            loop1: while true {
+                let loc0 = location
+                let b0 = byte
+                
+                switch b0 {
+                case 0: throw unexceptedEndError(location: loc0)
+                case .space, .tab:
+                    location.addColumn(length: 1)
+                case .cr:
+                    processCR()
+                case .lf:
+                    processLF()
+                case .slash:
+                    try processComment(loc0)
+                case .alSN:
+                    location.addColumn(length: 1)
+                    if readByte() == .alSU,
+                        readByte() == .alSL,
+                        readByte() == .alSL
+                    {
+                        try emitValue(ParsedJSON(location: loc0, value: .null))
+                        break loop1
+                    } else {
+                        throw invalidCharError(b0, location: loc0)
+                    }
+                case .alST:
+                    location.addColumn(length: 1)
+                    if readByte() == .alSR,
+                        readByte() == .alSU,
+                        readByte() == .alSE
+                    {
+                        try emitValue(ParsedJSON(location: loc0, value: .boolean(true)))
+                        break loop1
+                    } else {
+                        throw invalidCharError(b0, location: loc0)
+                    }
+                case .alSF:
+                    location.addColumn(length: 1)
+                    if readByte() == .alSA,
+                        readByte() == .alSL,
+                        readByte() == .alSS,
+                        readByte() == .alSE
+                    {
+                        try emitValue(ParsedJSON(location: loc0, value: .boolean(false)))
+                        break loop1
+                    } else {
+                        throw invalidCharError(b0, location: loc0)
+                    }
+                case .doubleQuote:
+                    try processString(loc0)
+                    break loop1
+                case .leftBracket:
+                    location.addColumn(length: 1)
+                    stack.append(.array(State.Array(array: [], location: loc0)))
+                case .rightBracket:
+                    location.addColumn(length: 1)
+                    guard case .array(let state) = self.state else {
+                        throw invalidCharError(b0, location: loc0)
+                    }
+                    let json = ParsedJSON(location: state.location, value: .array(state.array))
+                    stack.removeLast()
+                    try emitValue(json)
+                    break loop1
+                case .leftBrace:
+                    location.addColumn(length: 1)
+                    stack.append(.object(State.Object(object: JSONDictionary(), location: loc0)))
+                case .rightBrace:
+                    location.addColumn(length: 1)
+                    guard case .object(let state) = self.state else {
+                        throw invalidCharError(b0, location: loc0)
+                    }
+                    let json = ParsedJSON(location: state.location, value: .object(state.object))
+                    stack.removeLast()
+                    try emitValue(json)
+                    break loop1
+                default:
+                    if b0 == .minus || b0.isDigit {
+                        try processNumber(b0, loc0)
+                        break loop1
+                    } else {
+                        throw invalidCharError(b0, location: loc0)
+                    }
+                }
             }
             
-            let loc0 = location
-            let b0 = byte
-            
-            switch b0 {
-            case 0: throw unexceptedEndError(location: loc0)
-            case .space, .tab:
-                location.addColumn(length: 1)
-            case .cr:
-                processCR()
-            case .lf:
-                processLF()
-            case .slash:
-                try processComment(loc0)
-            case .alSN:
-                location.addColumn(length: 1)
-                if readByte() == .alSU,
-                    readByte() == .alSL,
-                    readByte() == .alSL
-                {
-                    try emitValue(ParsedJSON(location: loc0, value: .null))
-                } else {
-                    throw invalidCharError(b0, location: loc0)
-                }
-            case .alST:
-                location.addColumn(length: 1)
-                if readByte() == .alSR,
-                    readByte() == .alSU,
-                    readByte() == .alSE
-                {
-                    try emitValue(ParsedJSON(location: loc0, value: .boolean(true)))
-                } else {
-                    throw invalidCharError(b0, location: loc0)
-                }
-            case .alSF:
-                location.addColumn(length: 1)
-                if readByte() == .alSA,
-                readByte() == .alSL,
-                readByte() == .alSS,
-                readByte() == .alSE
-                {
-                    try emitValue(ParsedJSON(location: loc0, value: .boolean(false)))
-                } else {
-                    throw invalidCharError(b0, location: loc0)
-                }
-            case .doubleQuote:
-                try processString(loc0)
-            default:
-                if b0 == .minus || b0.isDigit {
-                    try processNumber(b0, loc0)
-                }
+            if case .root(.some(let json)) = state {
+                return json
             }
         }
     }
@@ -167,6 +210,28 @@ public final class FastJSONParser {
         }
     }
     
+    private func consumeColon() throws {
+        while true {
+            let loc0 = location
+            let b0 = byte
+            switch b0 {
+            case 0:
+                throw unexceptedEndError(location: loc0)
+            case .space, .tab:
+                location.addColumn(length: 1)
+            case .cr:
+                processCR()
+            case .lf:
+                processLF()
+            case .colon:
+                location.addColumn(length: 1)
+                return
+            default:
+                throw invalidCharError(b0, location: loc0)
+            }
+        }
+    }
+    
     private func processCR() {
         location.addColumn(length: 1)
         let b1 = byte
@@ -174,6 +239,7 @@ public final class FastJSONParser {
         case .lf:
             processLF()
         default:
+            location.addLine(newLineLength: 0)
             break
         }
     }
@@ -275,9 +341,15 @@ public final class FastJSONParser {
                 location.addColumn(length: 1)
             }
             
+            let b5 = byte
+            guard b5.isDigit else {
+                throw invalidCharError(b0, location: loc0)
+            }
+            location.addColumn(length: 1)
+            
             while true {
-                let b5 = byte
-                if b5.isDigit {
+                let b6 = byte
+                if b6.isDigit {
                     location.addColumn(length: 1)
                 } else {
                     break
@@ -307,7 +379,6 @@ public final class FastJSONParser {
                 break
             } else if b1 == .backSlash {
                 location.addColumn(length: 1)
-                result.append(byte: b1)
                 
                 let b2 = byte
                 switch b2 {
@@ -381,8 +452,7 @@ public final class FastJSONParser {
         result.append(byte: 0)
         
         let str = String(cString: result.bytes.assumingMemoryBound(to: UInt8.self))
-        let json = ParsedJSON(location: loc0, value: .string(str))
-        try emitValue(json)
+        try emitString(str, loc0)
     }
     
     private func decodeEscapedUnicode() -> UInt32? {
@@ -397,7 +467,7 @@ public final class FastJSONParser {
             let b0 = byte
             guard let v = b0.hexValue else { return nil }
             location.addColumn(length: 1)
-            code = (code << 8) + UInt32(v)
+            code = (code << 4) + UInt32(v)
         }
         return code
     }
@@ -422,8 +492,7 @@ public final class FastJSONParser {
         }
         
         let str = makeString(start: loc1, end: loc2)
-        let json = ParsedJSON(location: loc0, value: .string(str))
-        try emitValue(json)
+        try emitString(str, loc1)
         return true
     }
     
@@ -494,6 +563,18 @@ public final class FastJSONParser {
         end.pointee = be
         return str
     }
+    
+    private func emitString(_ string: String, _ location: SourceLocationLite) throws {
+        if case .object(let state) = self.state,
+            state.key == nil
+        {
+            state.key = string
+            try consumeColon()
+            return
+        }
+        
+        try emitValue(ParsedJSON(location: location, value: .string(string)))
+    }
 
     private func emitValue(_ json: ParsedJSON) throws {
         switch state {
@@ -505,6 +586,7 @@ public final class FastJSONParser {
         case .object(let state):
             let key = state.key!
             state.object[key] = json
+            state.key = nil
             try mayConsumeComma()
         }
     }
