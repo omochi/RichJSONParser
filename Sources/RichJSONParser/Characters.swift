@@ -6,24 +6,77 @@ internal extension UInt8 {
     static let cr = UInt8(0x0D)
     static let space = UInt8(0x20)
     static let doubleQuote = UInt8(0x22)
+    static let star = UInt8(0x2A)
+    static let plus = UInt8(0x2B)
     static let comma = UInt8(0x2C)
+    static let minus = UInt8(0x2D)
+    static let dot = UInt8(0x2E)
+    static let slash = UInt8(0x2F)
+    
+    static let num0 = UInt8(0x30)
+    static let num1 = UInt8(0x31)
+    static let num9 = UInt8(0x39)
+    
     static let colon = UInt8(0x3A)
+    
+    static let alLA = UInt8(0x41)
+    static let alLE = UInt8(0x45)
+    static let alLF = UInt8(0x46)
+    
     static let leftBracket = UInt8(0x5B)
     static let backSlash = UInt8(0x5C)
     static let rightBracket = UInt8(0x5D)
     static let leftBrace = UInt8(0x7B)
     static let rightBrace = UInt8(0x7D)
     
-    static let alphaSA = UInt8(0x61)
-    static let alphaSB = UInt8(0x62)
-    static let alphaSE = UInt8(0x65)
-    static let alphaSF = UInt8(0x66)
-    static let alphaSL = UInt8(0x6C)
-    static let alphaSN = UInt8(0x6e)
-    static let alphaSR = UInt8(0x72)
-    static let alphaST = UInt8(0x74)
-    static let alphaSU = UInt8(0x75)
-    static let alphaSZ = UInt8(0x7A)
+    static let alSA = UInt8(0x61)
+    static let alSB = UInt8(0x62)
+    static let alSE = UInt8(0x65)
+    static let alSF = UInt8(0x66)
+    static let alSL = UInt8(0x6C)
+    static let alSN = UInt8(0x6e)
+    static let alSR = UInt8(0x72)
+    static let alSS = UInt8(0x73)
+    static let alST = UInt8(0x74)
+    static let alSU = UInt8(0x75)
+    static let alSZ = UInt8(0x7A)
+    
+    var isDigit: Bool {
+        return .num0 <= self && self <= .num9
+    }
+    
+    var isDigit1To9: Bool {
+        return .num1 <= self && self <= .num9
+    }
+    
+    var isHex: Bool {
+        return isDigit ||
+            .alSA <= self && self <= .alSF ||
+            .alLA <= self && self <= .alLF
+    }
+    
+    var hexValue: UInt8? {
+        if .num0 <= self && self <= .num9 {
+            return self - .num0
+        } else if .alSA <= self && self <= .alSF {
+            return 10 + (self - .alSA)
+        } else if .alLA <= self && self <= .alLF {
+            return 10 + (self - .alLA)
+        } else {
+            return nil
+        }
+    }
+    
+    var isControlCode: Bool {
+        return 0x00 <= self && self <= 0x1F ||
+            self == 0x7F
+    }
+    
+    var isPrintable: Bool {
+        return 0x20 <= self && self <= 0x7E
+    }
+
+
 }
 
 internal extension Unicode.Scalar {
@@ -35,20 +88,20 @@ internal extension Unicode.Scalar {
     
     static let space = Unicode.Scalar(.space)
     static let doubleQuote = Unicode.Scalar(.doubleQuote)
-    static let star = Unicode.Scalar(0x2A)!
-    static let plus = Unicode.Scalar(0x2B)!
+    static let star = Unicode.Scalar(.star)
+    static let plus = Unicode.Scalar(.plus)
     static let comma = Unicode.Scalar(.comma)
-    static let minus = Unicode.Scalar(0x2D)!
-    static let dot = Unicode.Scalar(0x2E)!
-    static let slash = Unicode.Scalar(0x2F)!
+    static let minus = Unicode.Scalar(.minus)
+    static let dot = Unicode.Scalar(.dot)
+    static let slash = Unicode.Scalar(.slash)
 
-    static let num0 = Unicode.Scalar(0x30)!
-    static let num1 = Unicode.Scalar(0x31)!
-    static let num9 = Unicode.Scalar(0x39)!
+    static let num0 = Unicode.Scalar(.num0)
+    static let num1 = Unicode.Scalar(.num1)
+    static let num9 = Unicode.Scalar(.num9)
     static let colon = Unicode.Scalar(.colon)
     
     static let alphaLA = Unicode.Scalar(0x41)!
-    static let alphaLE = Unicode.Scalar(0x45)!
+    static let alphaLE = Unicode.Scalar(.alLE)
     static let alphaLF = Unicode.Scalar(0x46)!
     static let alphaLZ = Unicode.Scalar(0x5A)!
     
@@ -56,15 +109,15 @@ internal extension Unicode.Scalar {
     static let leftBracket = Unicode.Scalar(.leftBracket)
     static let rightBracket = Unicode.Scalar(.rightBracket)
 
-    static let alphaSA = Unicode.Scalar(0x61)!
-    static let alphaSB = Unicode.Scalar(0x62)!
-    static let alphaSE = Unicode.Scalar(0x65)!
-    static let alphaSF = Unicode.Scalar(0x66)!
-    static let alphaSN = Unicode.Scalar(0x6e)!
-    static let alphaSR = Unicode.Scalar(0x72)!
-    static let alphaST = Unicode.Scalar(0x74)!
-    static let alphaSU = Unicode.Scalar(0x75)!
-    static let alphaSZ = Unicode.Scalar(0x7A)!
+    static let alphaSA = Unicode.Scalar(.alSA)
+    static let alphaSB = Unicode.Scalar(.alSB)
+    static let alphaSE = Unicode.Scalar(.alSE)
+    static let alphaSF = Unicode.Scalar(.alSF)
+    static let alphaSN = Unicode.Scalar(.alSN)
+    static let alphaSR = Unicode.Scalar(.alSR)
+    static let alphaST = Unicode.Scalar(.alST)
+    static let alphaSU = Unicode.Scalar(.alSU)
+    static let alphaSZ = Unicode.Scalar(.alSZ)
     static let leftBrace = Unicode.Scalar(.leftBrace)
     static let rightBrace = Unicode.Scalar(.rightBrace)
     
@@ -119,7 +172,7 @@ internal extension Unicode.Scalar {
     }
 }
 
-extension UInt32 {
+internal extension UInt32 {
     var isHighSurrogate: Bool {
         let x = self
         
@@ -132,11 +185,9 @@ extension UInt32 {
         return 0xDC00 <= x && x <= 0xDFFF
     }
     
-    static func combineSurrogates(high: UInt32, low: UInt32) -> Unicode.Scalar? {
-        let code = 0x10000 +
+    static func combineSurrogates(high: UInt32, low: UInt32) -> UInt32 {
+        return 0x10000 +
             (high - 0xD800) << 10 +
             (low - 0xDC00)
-        
-        return Unicode.Scalar(code)
     }
 }
