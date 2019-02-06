@@ -338,14 +338,8 @@ public final class FastJSONParser {
                 case .alSU:
                     location.addColumn(length: 1)
                     
-                    var code: UInt32 = 0
-                    for _ in 0..<4 {
-                        let b3 = byte
-                        guard let v = b3.hexValue else {
-                            throw invalidCharError(b1, location: loc1)
-                        }
-                        location.addColumn(length: 1)
-                        code = (code << 8) + UInt32(v)
+                    guard var code = decodeEscapedUnicode1() else {
+                        throw invalidCharError(b1, location: loc1)
                     }
                     
                     if code.isLowSurrogate {
@@ -394,6 +388,10 @@ public final class FastJSONParser {
     private func decodeEscapedUnicode() -> UInt32? {
         guard readByte() == .backSlash,
             readByte() == .alSU else { return nil }
+        return decodeEscapedUnicode1()
+    }
+    
+    private func decodeEscapedUnicode1() -> UInt32? {
         var code: UInt32 = 0
         for _ in 0..<4 {
             let b0 = byte
