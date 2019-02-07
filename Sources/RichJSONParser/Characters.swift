@@ -15,6 +15,13 @@ internal extension UInt8 {
     
     static let num0 = UInt8(0x30)
     static let num1 = UInt8(0x31)
+    static let num2 = UInt8(0x32)
+    static let num3 = UInt8(0x33)
+    static let num4 = UInt8(0x34)
+    static let num5 = UInt8(0x35)
+    static let num6 = UInt8(0x36)
+    static let num7 = UInt8(0x37)
+    static let num8 = UInt8(0x38)
     static let num9 = UInt8(0x39)
     
     static let colon = UInt8(0x3A)

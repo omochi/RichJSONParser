@@ -1,5 +1,31 @@
 2019/02/07
 
+数字を列挙
+
+7.029258
+
+---
+
+autoreleasepoolで挟むとFoundationが遅くなる
+
+FastParser 7.193193
+
+Foundation 2.880308
+
+---
+
+測定方法を変更
+
+Parser 10.731413
+
+FastParser 7.292189
+
+Foundation 2.316525
+
+---
+
+2019/02/07
+
 高速実装
 
 基本
