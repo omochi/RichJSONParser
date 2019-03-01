@@ -242,14 +242,11 @@ public enum JSONStringEscape {
                 result.append(contentsOf: "\\n".utf8)
             } else if c0c == .tab {
                 result.append(contentsOf: "\\t".utf8)
-            } else if c0c.isASCII && !c0c.isControlCode {
-                result.append(contentsOf: String(c0c).utf8)
-            } else if let pair = c0c.surrogatePair {
-                let str = String(format: "\\u%04X\\u%04X", pair.high, pair.low)
-                result.append(contentsOf: str.utf8)
-            } else {
+            } else if c0c.isControlCode {
                 let str = String(format: "\\u%04X", c0c.value)
                 result.append(contentsOf: str.utf8)
+            } else {
+                result.append(contentsOf: String(c0c).utf8)
             }
         }
     }

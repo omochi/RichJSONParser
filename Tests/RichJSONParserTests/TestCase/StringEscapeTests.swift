@@ -17,7 +17,7 @@ class StringEscapeTests: XCTestCase {
     func testEscape1() throws {
         let a = "aあ\nい"
         let b = try escape(string: a)
-        XCTAssertEqual(b, "a\\u3042\\n\\u3044")
+        XCTAssertEqual(b, "aあ\\nい")
     }
     
     func testEmojiUnescape1() throws {
@@ -29,7 +29,7 @@ class StringEscapeTests: XCTestCase {
     func testEmojiEscape1() throws {
         let a = "😀"
         let b = try escape(string: a)
-        XCTAssertEqual(b, "\\uD83D\\uDE00")
+        XCTAssertEqual(b, "😀")
     }
     
     func unescape(string: String) throws -> String {

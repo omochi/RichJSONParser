@@ -92,11 +92,11 @@ class SerializerTests: XCTestCase {
 """)
             ])
         
-        let bs = "\\"
+        let b = "\\"
         XCTAssertEqual(serialize(json, options: JSONSerializeOptions()),
                         """
 [
-  "\(bs)u3042\(bs)"\(bs)u3044\(bs)n\(bs)u3046\(bs)\(bs)\(bs)u3048"
+  "あ\(b)"い\(b)nう\(b)\(b)え"
 ]
 """)
     }
