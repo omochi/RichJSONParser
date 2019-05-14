@@ -107,6 +107,9 @@ public enum JSONStringEscape {
                 } else if c1c == .backSlash {
                     offset += 1
                     write(.backSlash)
+                } else if c1c == .slash {
+                    offset += 1
+                    write(.slash)
                 } else if c1c == .alphaSB {
                     offset += 1
                     write(.backSpace)

@@ -32,6 +32,12 @@ class StringEscapeTests: XCTestCase {
         XCTAssertEqual(b, "😀")
     }
     
+    func testSlash() throws {
+        let a = "\\/"
+        let b = try unescape(string: a)
+        XCTAssertEqual(b, "/")
+    }
+    
     func unescape(string: String) throws -> String {
         let data = string.data(using: .utf8)!
         return try JSONStringEscape.unescape(data: data)

@@ -401,7 +401,7 @@ public final class FastJSONParser {
                     result.write(byte: .backSpace)
                 case .alSF:
                     location.addColumn(length: 1)
-                    result.write(byte: .backSpace)
+                    result.write(byte: .formFeed)
                 case .alSN:
                     location.addColumn(length: 1)
                     result.write(byte: .lf)
