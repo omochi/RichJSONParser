@@ -27,8 +27,11 @@ public enum JSONStringEscape {
     }
     
     public static func unescape(data: Data) throws -> String {
-        return try data.withUnsafeBytes { (p) in
-            try unescape(data: p, size: data.count)
+        return try data.withUnsafeBytes { (b: UnsafeRawBufferPointer) in
+            guard let p = b.baseAddress else {
+                return ""
+            }
+            return try unescape(data: p.assumingMemoryBound(to: UInt8.self), size: b.count)
         }
     }
     

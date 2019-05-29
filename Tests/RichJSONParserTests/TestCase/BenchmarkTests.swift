@@ -2,8 +2,10 @@ import XCTest
 import RichJSONParser
 import Foundation
 
-class BenchmarkTests: XCTestCase {
-
+class BenchmarkTests
+//: XCTestCase
+{
+    
     func testParse() throws {
         myPerformanceTest { (measure) in
             let file = Resources.shared.path("first-mate-tests.json")
